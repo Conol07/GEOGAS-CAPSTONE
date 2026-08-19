@@ -1,0 +1,25 @@
+{
+    "name": "geogas/manfort",
+    "type": "project",
+    "description": "GeoGas ManFort: Fuel Price Monitoring and Geospatial Analysis System for Manolo Fortich, Bukidnon",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0"
+    },
+    "require-dev": {
+        "laravel/tinker": "^2.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
