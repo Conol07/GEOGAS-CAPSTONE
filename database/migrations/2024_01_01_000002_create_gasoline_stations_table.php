@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('gasoline_stations', function (Blueprint $table) {
             $table->id();
             $table->string('station_name');
+            $table->string('company_owner')->nullable();
+            $table->string('email')->nullable();
             $table->string('address');
             $table->string('barangay')->default('Tankulan');
             $table->string('municipality')->default('Manolo Fortich');

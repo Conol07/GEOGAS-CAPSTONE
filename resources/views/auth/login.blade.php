@@ -11,7 +11,7 @@
                 <p class="mb-0" style="color:#D1D5DB;">Fuel Price Monitoring &amp; Geospatial Analysis System for Manolo Fortich, Bukidnon.</p>
             </div>
             <div class="gg-login-form">
-                <h4 class="mb-1">Station / Admin Login</h4>
+                <h4 class="mb-1">Station / LGU Login</h4>
                 <p class="text-muted-gg small mb-4">Sign in to manage your station or the system.</p>
                 <form method="POST" action="{{ route('login') }}">
                     @csrf

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,14 +26,19 @@ class User extends Authenticatable
         ];
     }
 
-    public function isAdmin(): bool
+    public function isLguAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'lgu_admin';
     }
 
-    public function isStationPersonnel(): bool
+    public function isManager(): bool
     {
-        return $this->role === 'station_personnel';
+        return $this->role === 'manager';
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
     }
 
     public function stationAssignment()
@@ -42,7 +46,6 @@ class User extends Authenticatable
         return $this->hasOne(StationPersonnel::class);
     }
 
-    // Convenience accessor: the station this user manages (null for admins)
     public function station()
     {
         return $this->hasOneThrough(
@@ -55,13 +58,23 @@ class User extends Authenticatable
         );
     }
 
-    public function submittedFuelPrices()
+    public function fuelPriceUpdates()
     {
-        return $this->hasMany(FuelPrice::class, 'submitted_by');
+        return $this->hasMany(FuelPrice::class, 'updated_by');
     }
 
-    public function verifiedFuelPrices()
+    /**
+     * Managers have full access to their own station. Staff are limited
+     * to whatever keys are in their station_personnel.permissions array.
+     */
+    public function hasStationPermission(string $key): bool
     {
-        return $this->hasMany(FuelPrice::class, 'verified_by');
+        if ($this->isManager() || $this->isLguAdmin()) {
+            return true;
+        }
+
+        $assignment = $this->stationAssignment;
+
+        return $assignment && in_array($key, $assignment->permissions ?? [], true);
     }
 }

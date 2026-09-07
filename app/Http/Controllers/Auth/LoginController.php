@@ -38,8 +38,8 @@ class LoginController extends Controller
             ]);
         }
 
-        return $user->isAdmin()
-            ? redirect()->intended(route('admin.dashboard'))
+        return $user->isLguAdmin()
+            ? redirect()->intended(route('lgu.dashboard'))
             : redirect()->intended(route('station.dashboard'));
     }
 

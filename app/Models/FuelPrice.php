@@ -10,19 +10,13 @@ class FuelPrice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'station_id', 'gasoline_price', 'diesel_price', 'premium_price', 'regular_price',
-        'effective_date', 'status', 'submitted_by', 'verified_by', 'verified_at', 'rejection_reason',
+        'station_id', 'fuel_type_id', 'price', 'availability_status', 'updated_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'effective_date' => 'date',
-            'verified_at' => 'datetime',
-            'gasoline_price' => 'decimal:2',
-            'diesel_price' => 'decimal:2',
-            'premium_price' => 'decimal:2',
-            'regular_price' => 'decimal:2',
+            'price' => 'decimal:2',
         ];
     }
 
@@ -31,28 +25,50 @@ class FuelPrice extends Model
         return $this->belongsTo(GasolineStation::class, 'station_id');
     }
 
-    public function submitter()
+    public function fuelType()
     {
-        return $this->belongsTo(User::class, 'submitted_by');
+        return $this->belongsTo(FuelType::class);
     }
 
-    public function verifier()
+    public function updater()
     {
-        return $this->belongsTo(User::class, 'verified_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
-    public function scopePending($query)
+    /**
+     * The record immediately preceding this one for the same
+     * station+fuel type — used to compute price-change indicators.
+     */
+    public function previous(): ?self
     {
-        return $query->where('status', 'pending');
+        return static::where('station_id', $this->station_id)
+            ->where('fuel_type_id', $this->fuel_type_id)
+            ->where('id', '<', $this->id)
+            ->latest('id')
+            ->first();
     }
 
-    public function scopeApproved($query)
+    public function priceChangeDirection(): string
     {
-        return $query->where('status', 'approved');
+        $prev = $this->previous();
+
+        if (! $prev) {
+            return 'none';
+        }
+
+        if ((float) $this->price > (float) $prev->price) {
+            return 'increased';
+        }
+
+        if ((float) $this->price < (float) $prev->price) {
+            return 'decreased';
+        }
+
+        return 'unchanged';
     }
 
-    public function scopeRejected($query)
+    public function isStale(int $hours = 72): bool
     {
-        return $query->where('status', 'rejected');
+        return $this->created_at->lt(now()->subHours($hours));
     }
 }

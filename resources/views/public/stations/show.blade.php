@@ -3,48 +3,38 @@
 
 @section('content')
 <nav class="small text-muted-gg mb-2"><a href="{{ route('stations.index') }}">Stations</a> / {{ $station->station_name }}</nav>
-<h4 class="mb-1">{{ $station->station_name }}</h4>
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+    <h4 class="mb-0">{{ $station->station_name }}</h4>
+    <x-availability-badge :status="$station->overallAvailability()" />
+</div>
 <p class="text-muted-gg mb-4"><i class="bi bi-geo-alt-fill me-1"></i>{{ $station->address }}, {{ $station->barangay }}, {{ $station->municipality }}, {{ $station->province }}</p>
 
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="card mb-3">
-            <div class="card-header"><i class="bi bi-check-circle me-1"></i>Current Verified Prices</div>
+            <div class="card-header"><i class="bi bi-cash-coin me-1"></i>Current Verified Prices</div>
             <div class="card-body">
-                @if($station->latestApprovedPrice)
+                @if($currentPrices->isNotEmpty())
                     <div class="row g-3">
-                        <div class="col-6">
-                            <div class="gg-price-item">
-                                <div class="label">Gasoline</div>
-                                <div class="value">₱{{ number_format($station->latestApprovedPrice->gasoline_price, 2) }}</div>
+                        @foreach($currentPrices as $p)
+                            <div class="col-6">
+                                <div class="gg-price-item">
+                                    <div class="label">{{ $p->fuelType->name }}</div>
+                                    <div class="value">₱{{ number_format($p->price, 2) }}</div>
+                                    <div class="mt-1"><x-availability-badge :status="$p->availability_status" /></div>
+                                    <div class="mt-1"><x-price-change :price="$p" /></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="gg-price-item">
-                                <div class="label">Diesel</div>
-                                <div class="value">₱{{ number_format($station->latestApprovedPrice->diesel_price, 2) }}</div>
-                            </div>
-                        </div>
-                        @if($station->latestApprovedPrice->premium_price)
-                        <div class="col-6">
-                            <div class="gg-price-item">
-                                <div class="label">Premium</div>
-                                <div class="value">₱{{ number_format($station->latestApprovedPrice->premium_price, 2) }}</div>
-                            </div>
-                        </div>
-                        @endif
-                        @if($station->latestApprovedPrice->regular_price)
-                        <div class="col-6">
-                            <div class="gg-price-item">
-                                <div class="label">Regular</div>
-                                <div class="value">₱{{ number_format($station->latestApprovedPrice->regular_price, 2) }}</div>
-                            </div>
-                        </div>
-                        @endif
+                        @endforeach
                     </div>
-                    <p class="text-muted-gg small mt-3 mb-0"><i class="bi bi-clock-history me-1"></i>Last verified: {{ $station->latestApprovedPrice->effective_date->format('F d, Y') }}</p>
+                    <p class="text-muted-gg small mt-3 mb-0">
+                        <i class="bi bi-clock-history me-1"></i>Last updated: {{ $currentPrices->max('created_at')->diffForHumans() }}
+                        @if($currentPrices->max('created_at')->lt(now()->subHours(72)))
+                            <br><span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Price information may be outdated.</span>
+                        @endif
+                    </p>
                 @else
-                    <p class="text-muted-gg mb-0">No verified price yet.</p>
+                    <p class="text-muted-gg mb-0">No price data yet.</p>
                 @endif
             </div>
         </div>
@@ -57,13 +47,30 @@
             </div>
         </div>
 
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-tools me-1"></i>Services &amp; Amenities</div>
+            <div class="card-body">
+                @if($services->isEmpty())
+                    <p class="text-muted-gg small mb-0">No additional services listed.</p>
+                @else
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($services as $s)
+                            <span class="badge" style="background:var(--gg-accent-light); color:var(--gg-dark); font-weight:600;">
+                                <i class="bi bi-check-circle-fill me-1"></i>{{ $s->label }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <div class="card">
-            <div class="card-header"><i class="bi bi-clock-history me-1"></i>Recent Price History (Verified)</div>
+            <div class="card-header"><i class="bi bi-clock-history me-1"></i>Recent Price History</div>
             <ul class="list-group list-group-flush">
-                @forelse($station->fuelPrices as $price)
-                    <li class="list-group-item small d-flex justify-content-between">
-                        <span>{{ $price->effective_date->format('M d, Y') }}</span>
-                        <span>Gasoline ₱{{ number_format($price->gasoline_price,2) }} · Diesel ₱{{ number_format($price->diesel_price,2) }}</span>
+                @forelse($history as $h)
+                    <li class="list-group-item small d-flex justify-content-between align-items-center">
+                        <span>{{ $h->created_at->format('M d, Y g:i A') }} — {{ $h->fuelType->name }}</span>
+                        <span>₱{{ number_format($h->price,2) }} <x-price-change :price="$h" /></span>
                     </li>
                 @empty
                     <li class="list-group-item text-muted-gg small">No history yet.</li>
@@ -79,6 +86,12 @@
     </div>
 </div>
 
+<div class="mt-3">
+    <a href="{{ route('complaints.create') }}?station_id={{ $station->id }}" class="btn btn-outline-brand btn-sm">
+        <i class="bi bi-flag-fill me-1"></i>Report an issue with this station
+    </a>
+</div>
+
 @push('scripts')
 <script>
     const map = L.map('stationMap').setView([{{ $station->latitude }}, {{ $station->longitude }}], 16);
@@ -86,9 +99,7 @@
     const stationIcon = L.divIcon({
         className: '',
         html: '<div class="gg-marker-pin selected"><i class="bi bi-fuel-pump-fill"></i></div>',
-        iconSize: [28, 28],
-        iconAnchor: [14, 28],
-        popupAnchor: [0, -26],
+        iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26],
     });
     L.marker([{{ $station->latitude }}, {{ $station->longitude }}], { icon: stationIcon }).addTo(map).bindPopup(@json($station->station_name));
 </script>

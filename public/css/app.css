@@ -131,8 +131,8 @@ a:hover { color: var(--gg-accent-dark); }
     border-radius: 50%;
     background: currentColor;
 }
-.status-approved, .status-active { background: var(--gg-green-bg); color: var(--gg-green); }
-.status-pending { background: var(--gg-amber-bg); color: var(--gg-amber); }
+.status-approved, .status-active, .status-resolved { background: var(--gg-green-bg); color: var(--gg-green); }
+.status-pending, .status-under_review { background: var(--gg-amber-bg); color: var(--gg-amber); }
 .status-rejected { background: var(--gg-red-status-bg); color: var(--gg-red-status); }
 .status-inactive { background: var(--gg-gray-bg); color: var(--gg-muted); }
 

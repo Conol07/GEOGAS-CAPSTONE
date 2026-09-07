@@ -1,58 +1,57 @@
 @php
-$sidebarItems = [
-    ["route"=>"station.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2"],
-    ["route"=>"station.prices.create","label"=>"Update Fuel Prices","icon"=>"bi-pencil-square"],
-    ["route"=>"station.history","label"=>"Update History","icon"=>"bi-clock-history"],
-];
+$isManager = auth()->user()->isManager();
+$sidebarItems = collect([
+    ["route"=>"station.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2","perm"=>"view_dashboard"],
+    ["route"=>"station.prices.edit","label"=>"Update Fuel Prices","icon"=>"bi-pencil-square","perm"=>"update_prices"],
+    ["route"=>"station.history","label"=>"Price History","icon"=>"bi-clock-history","perm"=>"view_price_history"],
+    ["route"=>"station.services.edit","label"=>"Station Services","icon"=>"bi-tools","perm"=>"manage_services"],
+    ["route"=>"station.reports.index","label"=>"Reports","icon"=>"bi-file-earmark-text-fill","perm"=>"view_reports"],
+])->filter(fn($i) => auth()->user()->hasStationPermission($i["perm"]))->values()->all();
+if ($isManager) {
+    $sidebarItems[] = ["route"=>"station.staff.index","label"=>"Staff Accounts","icon"=>"bi-people-fill"];
+}
 @endphp
-@extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'station.prices.create'])
+@extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'station.prices.edit'])
 @section('title', 'Update Fuel Prices')
 
 @section('dashboard-content')
-<h4 class="mb-1">Update Fuel Prices</h4>
-<p class="text-muted-gg small mb-3">{{ $station->station_name }} — submitted prices are held as <strong>pending</strong> until an administrator verifies them.</p>
+<h4 class="mb-1">Update Fuel Prices &amp; Availability</h4>
+<p class="text-muted-gg small mb-3">{{ $station->station_name }} — changes are live on the public map immediately. No LGU approval required.</p>
 
 <div class="card">
     <div class="card-body p-4">
-        <form method="POST" action="{{ route('station.prices.store') }}">
+        <form method="POST" action="{{ route('station.prices.update') }}">
             @csrf
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Gasoline</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₱</span>
-                        <input type="number" step="0.01" min="0" name="gasoline_price" class="form-control" value="{{ old('gasoline_price') }}">
+            @foreach($fuelTypes as $ft)
+                @php $current = $currentPrices->get($ft->id); @endphp
+                <div class="row g-3 align-items-end border-bottom pb-3 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label mb-0">{{ $ft->name }}</label>
+                        @if($current)
+                            <div class="text-muted-gg small">Current: ₱{{ number_format($current->price,2) }}</div>
+                        @endif
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">New Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="number" step="0.01" min="0" name="prices[{{ $ft->id }}][price]" class="form-control" value="{{ old("prices.{$ft->id}.price") }}">
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small">Availability</label>
+                        <select name="prices[{{ $ft->id }}][availability_status]" class="form-select">
+                            <option value="enough" {{ optional($current)->availability_status=='enough' ? 'selected' : '' }}>🟢 Has Enough Gasoline</option>
+                            <option value="almost_empty" {{ optional($current)->availability_status=='almost_empty' ? 'selected' : '' }}>🟡 Almost Empty</option>
+                            <option value="no_fuel" {{ optional($current)->availability_status=='no_fuel' ? 'selected' : '' }}>🔴 No Gasoline</option>
+                        </select>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Diesel</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₱</span>
-                        <input type="number" step="0.01" min="0" name="diesel_price" class="form-control" value="{{ old('diesel_price') }}">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Premium</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₱</span>
-                        <input type="number" step="0.01" min="0" name="premium_price" class="form-control" value="{{ old('premium_price') }}">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Regular</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₱</span>
-                        <input type="number" step="0.01" min="0" name="regular_price" class="form-control" value="{{ old('regular_price') }}">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Effective Date</label>
-                    <input type="date" name="effective_date" class="form-control" value="{{ old('effective_date', date('Y-m-d')) }}" required>
-                </div>
-            </div>
-            <p class="text-muted-gg small mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Fill in at least one fuel price. All prices must be zero or greater.</p>
-            <button class="btn btn-brand mt-3" onclick="return confirm('Submit these prices for administrator verification?');">
-                <i class="bi bi-send-check me-1"></i>Submit for Verification
+            @endforeach
+
+            <p class="text-muted-gg small mb-3"><i class="bi bi-info-circle me-1"></i>Leave a fuel type's price blank to skip updating it this time.</p>
+            <button class="btn btn-brand" onclick="return confirm('Update these fuel prices now? Changes go live immediately.');">
+                <i class="bi bi-send-check me-1"></i>Update Now
             </button>
         </form>
     </div>

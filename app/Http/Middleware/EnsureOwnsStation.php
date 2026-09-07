@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Guarantees station personnel can only act on their own assigned station.
+ * Guarantees managers/staff can only act on their own assigned station.
  * Expects a {station} route parameter (id) or falls back to the
  * user's own assignment when none is given.
  */
@@ -17,8 +17,8 @@ class EnsureOwnsStation
     {
         $user = $request->user();
 
-        if ($user->isAdmin()) {
-            return $next($request); // admins may act on any station
+        if ($user->isLguAdmin()) {
+            return $next($request); // LGU admin may view any station
         }
 
         $assignment = $user->stationAssignment;
@@ -34,7 +34,6 @@ class EnsureOwnsStation
             abort(403, 'You may only manage your own assigned station.');
         }
 
-        // Make the resolved station id available to controllers
         $request->attributes->set('resolved_station_id', $assignment->station_id);
 
         return $next($request);

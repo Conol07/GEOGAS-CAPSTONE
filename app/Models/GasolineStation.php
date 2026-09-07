@@ -10,7 +10,7 @@ class GasolineStation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'station_name', 'address', 'barangay', 'municipality', 'province',
+        'station_name', 'company_owner', 'email', 'address', 'barangay', 'municipality', 'province',
         'latitude', 'longitude', 'contact_number', 'status',
     ];
 
@@ -27,23 +27,64 @@ class GasolineStation extends Model
         return $this->hasMany(StationPersonnel::class, 'station_id');
     }
 
+    public function manager()
+    {
+        return $this->hasOneThrough(User::class, StationPersonnel::class, 'station_id', 'id', 'id', 'user_id')
+            ->where('users.role', 'manager');
+    }
+
     public function fuelPrices()
     {
         return $this->hasMany(FuelPrice::class, 'station_id');
     }
 
-    // Latest publicly-visible (approved) price
-    public function latestApprovedPrice()
+    public function services()
     {
-        return $this->hasOne(FuelPrice::class, 'station_id')
-            ->where('status', 'approved')
-            ->latest('effective_date')
-            ->latest('verified_at');
+        return $this->hasMany(StationService::class, 'station_id');
     }
 
-    public function pendingPrices()
+    public function complaints()
     {
-        return $this->hasMany(FuelPrice::class, 'station_id')->where('status', 'pending');
+        return $this->hasMany(Complaint::class, 'station_id');
+    }
+
+    /**
+     * The latest price+availability row per fuel type for this station.
+     * Loaded on demand via GasolineStation::withCurrentPrices() scope below,
+     * or call ->currentPrices() directly.
+     */
+    public function currentPrices()
+    {
+        return FuelPrice::where('station_id', $this->id)
+            ->select('fuel_prices.*')
+            ->whereIn('id', function ($q) {
+                $q->selectRaw('MAX(id)')
+                    ->from('fuel_prices')
+                    ->where('station_id', $this->id)
+                    ->groupBy('fuel_type_id');
+            })
+            ->with('fuelType')
+            ->get()
+            ->keyBy('fuel_type_id');
+    }
+
+    public function overallAvailability(): string
+    {
+        $prices = $this->currentPrices();
+
+        if ($prices->isEmpty()) {
+            return 'unknown';
+        }
+
+        if ($prices->contains(fn ($p) => $p->availability_status === 'enough')) {
+            return 'enough';
+        }
+
+        if ($prices->contains(fn ($p) => $p->availability_status === 'almost_empty')) {
+            return 'almost_empty';
+        }
+
+        return 'no_fuel';
     }
 
     public function scopeActive($query)
@@ -62,5 +103,14 @@ class GasolineStation extends Model
                 ->orWhere('address', 'like', "%{$term}%")
                 ->orWhere('barangay', 'like', "%{$term}%");
         });
+    }
+
+    public function scopeInBarangay($query, ?string $barangay)
+    {
+        if (! $barangay) {
+            return $query;
+        }
+
+        return $query->where('barangay', $barangay);
     }
 }

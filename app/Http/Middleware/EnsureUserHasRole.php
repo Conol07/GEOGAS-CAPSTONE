@@ -9,8 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserHasRole
 {
     /**
-     * Restrict a route to one or more roles, e.g. ->middleware('role:admin')
-     * or ->middleware('role:admin,station_personnel').
+     * Restrict a route to one or more roles, e.g. ->middleware('role:lgu_admin')
+     * or ->middleware('role:manager,staff').
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {

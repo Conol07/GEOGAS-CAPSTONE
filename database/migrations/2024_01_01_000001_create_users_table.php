@@ -14,7 +14,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'station_personnel'])->default('station_personnel');
+            // lgu_admin: monitors/analyzes system, handles complaints (no price approval)
+            // manager: owns/manages one gasoline station, full control of it
+            // staff: belongs to one station, permission-limited by their manager
+            $table->enum('role', ['lgu_admin', 'manager', 'staff'])->default('staff');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->rememberToken();
             $table->timestamps();

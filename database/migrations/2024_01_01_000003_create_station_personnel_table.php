@@ -6,12 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Links a user (manager OR staff) to exactly one gasoline station.
+     * Managers implicitly have full access to their station; staff are
+     * limited to whatever is listed in `permissions`.
+     */
     public function up(): void
     {
         Schema::create('station_personnel', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('station_id')->constrained('gasoline_stations')->onDelete('cascade');
+            $table->foreignId('added_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->json('permissions')->nullable(); // used for staff; null/ignored for managers
             $table->timestamps();
 
             $table->unique(['user_id', 'station_id']);

@@ -11,13 +11,16 @@
             <ul class="navbar-nav me-auto ms-lg-3">
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('stations.*') ? 'active' : '' }}" href="{{ route('stations.index') }}">Stations</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('compare') ? 'active' : '' }}" href="{{ route('compare') }}">Compare Prices</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('compare') ? 'active' : '' }}" href="{{ route('compare') }}">Compare</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('areas') ? 'active' : '' }}" href="{{ route('areas') }}">By Area</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('cheapest') ? 'active' : '' }}" href="{{ route('cheapest') }}">Cheapest Fuel</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('map') ? 'active' : '' }}" href="{{ route('map') }}">Map</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('complaints.*') ? 'active' : '' }}" href="{{ route('complaints.create') }}"><i class="bi bi-flag-fill me-1"></i>Report an Issue</a></li>
             </ul>
             <ul class="navbar-nav align-items-lg-center gap-lg-2">
                 @auth
-                    @if(auth()->user()->isAdmin())
-                        <li class="nav-item"><a class="btn btn-outline-brand btn-sm" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>Admin Dashboard</a></li>
+                    @if(auth()->user()->isLguAdmin())
+                        <li class="nav-item"><a class="btn btn-outline-brand btn-sm" href="{{ route('lgu.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>LGU Dashboard</a></li>
                     @else
                         <li class="nav-item"><a class="btn btn-outline-brand btn-sm" href="{{ route('station.dashboard') }}"><i class="bi bi-shop me-1"></i>My Station</a></li>
                     @endif
@@ -28,7 +31,7 @@
                         </form>
                     </li>
                 @else
-                    <li class="nav-item mt-2 mt-lg-0"><a class="btn btn-brand btn-sm" href="{{ route('login') }}">Station / Admin Login</a></li>
+                    <li class="nav-item mt-2 mt-lg-0"><a class="btn btn-brand btn-sm" href="{{ route('login') }}">Station / LGU Login</a></li>
                 @endauth
             </ul>
         </div>

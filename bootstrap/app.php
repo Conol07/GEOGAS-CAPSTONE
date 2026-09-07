@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureHasPermission;
 use App\Http\Middleware\EnsureOwnsStation;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'owns_station' => EnsureOwnsStation::class,
+            'permission' => EnsureHasPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
