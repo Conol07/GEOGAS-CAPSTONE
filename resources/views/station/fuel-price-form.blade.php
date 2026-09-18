@@ -1,24 +1,19 @@
 @php
-$isManager = auth()->user()->isManager();
-$sidebarItems = collect([
-    ["route"=>"station.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2","perm"=>"view_dashboard"],
-    ["route"=>"station.prices.edit","label"=>"Update Fuel Prices","icon"=>"bi-pencil-square","perm"=>"update_prices"],
-    ["route"=>"station.history","label"=>"Price History","icon"=>"bi-clock-history","perm"=>"view_price_history"],
-    ["route"=>"station.services.edit","label"=>"Station Services","icon"=>"bi-tools","perm"=>"manage_services"],
-    ["route"=>"station.reports.index","label"=>"Reports","icon"=>"bi-file-earmark-text-fill","perm"=>"view_reports"],
-])->filter(fn($i) => auth()->user()->hasStationPermission($i["perm"]))->values()->all();
-if ($isManager) {
-    $sidebarItems[] = ["route"=>"station.staff.index","label"=>"Staff Accounts","icon"=>"bi-people-fill"];
-}
+$sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
 @endphp
 @extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'station.prices.edit'])
 @section('title', 'Update Fuel Prices')
 
 @section('dashboard-content')
-<h4 class="mb-1">Update Fuel Prices &amp; Availability</h4>
-<p class="text-muted-gg small mb-3">{{ $station->station_name }} — changes are live on the public map immediately. No LGU approval required.</p>
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+    <div>
+        <h4 class="mb-1">Update Fuel Prices &amp; Availability</h4>
+        <p class="text-muted-gg small mb-0">{{ $station->station_name }} — changes are live on the public map immediately. No LGU approval required.</p>
+    </div>
+    <a href="{{ route('station.fuel-types.create') }}" class="btn btn-outline-brand btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Fuel Type</a>
+</div>
 
-<div class="card">
+<div class="card mt-3">
     <div class="card-body p-4">
         <form method="POST" action="{{ route('station.prices.update') }}">
             @csrf
@@ -27,6 +22,9 @@ if ($isManager) {
                 <div class="row g-3 align-items-end border-bottom pb-3 mb-3">
                     <div class="col-md-3">
                         <label class="form-label mb-0">{{ $ft->name }}</label>
+                        @if($ft->specification)
+                            <div class="text-muted-gg" style="font-size:.72rem;">{{ $ft->specification }}</div>
+                        @endif
                         @if($current)
                             <div class="text-muted-gg small">Current: ₱{{ number_format($current->price,2) }}</div>
                         @endif

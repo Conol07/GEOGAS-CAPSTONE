@@ -54,17 +54,50 @@ class ReportController extends Controller
     {
         $complaints = Complaint::with('station')
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')))
+            ->when($request->filled('station_id'), fn ($q) => $q->where('station_id', $request->input('station_id')))
             ->latest('created_at')
             ->get();
 
         if ($request->input('export') === 'csv') {
-            return $this->csv('complaint-report', ['Reference', 'Category', 'Station', 'Area', 'Submitted', 'Status'], $complaints->map(fn ($c) => [
-                $c->reference_no, $c->category, optional($c->station)->station_name ?? 'N/A',
+            return $this->csv('complaint-report', ['Reference', 'Category', 'Station', 'Station Address', 'Area', 'Submitted', 'Status', 'Action Taken', 'Resolved'], $complaints->map(fn ($c) => [
+                $c->reference_no, \App\Models\Complaint::CATEGORIES[$c->category] ?? $c->category,
+                optional($c->station)->station_name ?? 'N/A', optional($c->station)->address ?? 'N/A',
                 optional($c->station)->barangay ?? 'N/A', $c->created_at->format('Y-m-d'), $c->status,
+                $c->lgu_response ?? '', optional($c->resolved_at)?->format('Y-m-d') ?? '',
             ]));
         }
 
-        return view('lgu.reports.complaints', compact('complaints'));
+        $stations = GasolineStation::orderBy('station_name')->get(['id', 'station_name']);
+        $selectedStation = $request->filled('station_id')
+            ? GasolineStation::find($request->input('station_id'))
+            : null;
+
+        return view('lgu.reports.complaints', compact('complaints', 'stations', 'selectedStation'));
+    }
+
+    /**
+     * Full record for a single station: info, current + historical prices,
+     * availability, services, and complaint history — for LGU record-keeping.
+     */
+    public function stationRecord(Request $request)
+    {
+        $stations = GasolineStation::orderBy('station_name')->get(['id', 'station_name']);
+
+        $station = $request->filled('station_id')
+            ? GasolineStation::with('services')->findOrFail($request->input('station_id'))
+            : null;
+
+        $priceHistory = null;
+        $complaints = null;
+        $currentPrices = null;
+
+        if ($station) {
+            $currentPrices = $station->currentPrices();
+            $priceHistory = $station->fuelPrices()->with('fuelType', 'updater')->latest('created_at')->take(50)->get();
+            $complaints = $station->complaints()->latest('created_at')->get();
+        }
+
+        return view('lgu.reports.station-record', compact('stations', 'station', 'currentPrices', 'priceHistory', 'complaints'));
     }
 
     private function csv(string $filename, array $headers, $rows)

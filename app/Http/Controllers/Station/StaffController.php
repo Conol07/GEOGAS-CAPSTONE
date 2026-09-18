@@ -86,13 +86,20 @@ class StaffController extends Controller
         $this->authorizeStaff($request, $staff);
 
         $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$staff->id],
             'permissions' => ['array'],
             'permissions.*' => ['in:'.implode(',', array_keys(StationPersonnel::PERMISSIONS))],
         ]);
 
+        $staff->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
         $staff->stationAssignment->update(['permissions' => $validated['permissions'] ?? []]);
 
-        AuditLog::record($request->user(), 'Updated staff permissions', $staff, $staff->name);
+        AuditLog::record($request->user(), 'Updated staff details and permissions', $staff, $staff->name);
 
         return redirect()->route('station.staff.index')->with('status', 'Staff permissions updated.');
     }

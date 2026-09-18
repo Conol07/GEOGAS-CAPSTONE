@@ -9,7 +9,12 @@ class FuelType extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'sort_order'];
+    protected $fillable = ['name', 'slug', 'sort_order', 'specification', 'description', 'created_by'];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     public function fuelPrices()
     {

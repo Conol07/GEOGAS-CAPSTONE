@@ -10,7 +10,8 @@ class GasolineStation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'station_name', 'company_owner', 'email', 'address', 'barangay', 'municipality', 'province',
+        'station_name', 'company_owner', 'email', 'photo_path', 'logo_path', 'description',
+        'address', 'barangay', 'municipality', 'province',
         'latitude', 'longitude', 'contact_number', 'status',
     ];
 
@@ -112,5 +113,15 @@ class GasolineStation extends Model
         }
 
         return $query->where('barangay', $barangay);
+    }
+
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path ? \Illuminate\Support\Facades\Storage::url($this->logo_path) : null;
+    }
+
+    public function photoUrl(): ?string
+    {
+        return $this->photo_path ? \Illuminate\Support\Facades\Storage::url($this->photo_path) : null;
     }
 }

@@ -1,12 +1,5 @@
 @php
-$sidebarItems = [
-    ["route"=>"lgu.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2"],
-    ["route"=>"lgu.stations.index","label"=>"Stations","icon"=>"bi-shop"],
-    ["route"=>"lgu.users.index","label"=>"Users","icon"=>"bi-people-fill"],
-    ["route"=>"lgu.complaints.index","label"=>"Complaints","icon"=>"bi-flag-fill"],
-    ["route"=>"lgu.analytics.index","label"=>"Analytics","icon"=>"bi-graph-up"],
-    ["route"=>"lgu.reports.index","label"=>"Reports","icon"=>"bi-file-earmark-text-fill"],
-];
+$sidebarItems = \App\Support\Nav::lguSidebar();
 @endphp
 @extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'lgu.reports.index'])
 @section('title', 'Reports')
@@ -38,7 +31,16 @@ $sidebarItems = [
             <div class="card-body p-4">
                 <div class="gg-stat-icon mb-3"><i class="bi bi-flag-fill"></i></div>
                 <h6 class="mb-1">Complaint Report</h6>
-                <p class="text-muted-gg small mb-0">All complaints with status and resolution.</p>
+                <p class="text-muted-gg small mb-0">All complaints — filterable by gasoline station.</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{{ route('lgu.reports.station-record') }}" class="card text-decoration-none h-100">
+            <div class="card-body p-4">
+                <div class="gg-stat-icon mb-3"><i class="bi bi-file-earmark-text-fill"></i></div>
+                <h6 class="mb-1">Station Record</h6>
+                <p class="text-muted-gg small mb-0">Full printable record for one gasoline station.</p>
             </div>
         </a>
     </div>

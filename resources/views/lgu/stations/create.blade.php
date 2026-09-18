@@ -1,12 +1,5 @@
 @php
-$sidebarItems = [
-    ["route"=>"lgu.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2"],
-    ["route"=>"lgu.stations.index","label"=>"Stations","icon"=>"bi-shop"],
-    ["route"=>"lgu.users.index","label"=>"Users","icon"=>"bi-people-fill"],
-    ["route"=>"lgu.complaints.index","label"=>"Complaints","icon"=>"bi-flag-fill"],
-    ["route"=>"lgu.analytics.index","label"=>"Analytics","icon"=>"bi-graph-up"],
-    ["route"=>"lgu.reports.index","label"=>"Reports","icon"=>"bi-file-earmark-text-fill"],
-];
+$sidebarItems = \App\Support\Nav::lguSidebar();
 @endphp
 @extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'lgu.stations.index'])
 @section('title', 'Register Station')
@@ -16,7 +9,7 @@ $sidebarItems = [
 <p class="text-muted-gg small mb-3">This also creates the station's manager account in one step.</p>
 <div class="card">
     <div class="card-body p-4">
-        <form method="POST" action="{{ route('lgu.stations.store') }}">
+        <form method="POST" action="{{ route('lgu.stations.store') }}" enctype="multipart/form-data">
             @csrf
             @include('lgu.stations._form')
 

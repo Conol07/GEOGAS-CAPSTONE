@@ -42,9 +42,11 @@ class StationPersonnel extends Model
         'update_prices' => 'Update fuel prices',
         'update_availability' => 'Update fuel availability',
         'view_price_history' => 'View price history',
+        'view_analytics' => 'View analytics',
         'manage_services' => 'Manage station services',
         'view_reports' => 'View reports',
         'generate_reports' => 'Generate reports',
+        'print_reports' => 'Print reports',
         'edit_station_info' => 'Edit station information',
     ];
 }

@@ -47,6 +47,8 @@ cd geogas-manfort
 
 Copy this scaffold's `app/`, `bootstrap/app.php`, `database/`, `resources/views/`, `public/css/`, and `routes/web.php` into the new project, overwriting the defaults, then:
 
+> ⚠️ **Applying an update from a later version?** Don't just extract the new zip on top of your existing project folder — a straight overlay only adds/overwrites files that exist in the new zip, it never deletes files that were removed or renamed since your last copy. Stale leftover files (especially in `database/migrations/`, where a renamed migration leaves the old one behind to run again and collide with the new one) are a common source of confusing errors after an update. Instead, delete your project's `app/`, `database/migrations/`, `resources/views/`, and `routes/` folders entirely before extracting the updated ones, or diff the two zips and remove anything that disappeared.
+
 ```bash
 composer install
 cp .env.example .env
@@ -68,6 +70,12 @@ php artisan db:seed
 ```
 
 Seeded data (fuel types, stations, prices, availability, services, accounts, one sample complaint) is **development/test data only** — not real prices or real reports.
+
+> ⚠️ **If you already ran `migrate` on an earlier version of this project** (before a schema update), running `migrate` again may silently do nothing — Laravel tracks completed migrations by filename, and some updates edit existing migration files in place rather than adding new ones. If you hit a "column not found" / "table not found" SQL error after pulling updated code, drop and rebuild the database instead:
+> ```bash
+> php artisan migrate:fresh --seed
+> ```
+> This is safe on a dev/capstone database with no real data to preserve.
 
 ## Running
 

@@ -11,7 +11,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'status',
+        'name', 'email', 'phone', 'password', 'role', 'status',
     ];
 
     protected $hidden = [
@@ -61,6 +61,11 @@ class User extends Authenticatable
     public function fuelPriceUpdates()
     {
         return $this->hasMany(FuelPrice::class, 'updated_by');
+    }
+
+    public function sessionLogs()
+    {
+        return $this->hasMany(SessionLog::class);
     }
 
     /**

@@ -1,15 +1,5 @@
 @php
-$isManager = auth()->user()->isManager();
-$sidebarItems = collect([
-    ["route"=>"station.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2","perm"=>"view_dashboard"],
-    ["route"=>"station.prices.edit","label"=>"Update Fuel Prices","icon"=>"bi-pencil-square","perm"=>"update_prices"],
-    ["route"=>"station.history","label"=>"Price History","icon"=>"bi-clock-history","perm"=>"view_price_history"],
-    ["route"=>"station.services.edit","label"=>"Station Services","icon"=>"bi-tools","perm"=>"manage_services"],
-    ["route"=>"station.reports.index","label"=>"Reports","icon"=>"bi-file-earmark-text-fill","perm"=>"view_reports"],
-])->filter(fn($i) => auth()->user()->hasStationPermission($i["perm"]))->values()->all();
-if ($isManager) {
-    $sidebarItems[] = ["route"=>"station.staff.index","label"=>"Staff Accounts","icon"=>"bi-people-fill"];
-}
+$sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
 @endphp
 @extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'station.reports.index'])
 @section('title', 'Station Reports')
@@ -21,9 +11,20 @@ if ($isManager) {
         <p class="text-muted-gg small mb-0">Scoped to your own station only.</p>
     </div>
     <div class="d-flex gap-2 no-print">
-        <a href="{{ route('station.reports.index', ['export'=>'csv']) }}" class="btn btn-outline-brand btn-sm"><i class="bi bi-filetype-csv me-1"></i>Export CSV</a>
-        <button class="btn btn-outline-brand btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+        @if(auth()->user()->hasStationPermission('generate_reports'))
+            <a href="{{ route('station.reports.index', ['export'=>'csv']) }}" class="btn btn-outline-brand btn-sm"><i class="bi bi-filetype-csv me-1"></i>Export CSV</a>
+        @endif
+        @if(auth()->user()->hasStationPermission('print_reports'))
+            <button class="btn btn-outline-brand btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+        @endif
     </div>
+</div>
+
+<div class="d-none d-print-block mb-3">
+    <h5 class="mb-0">GeoGas ManFort</h5>
+    <div class="fw-bold">{{ $station->station_name }}</div>
+    <div class="small text-muted-gg">Reporting Period: All available records &middot; Generated: {{ now()->format('F d, Y g:i A') }}</div>
+    <hr>
 </div>
 
 <h6 class="mb-2">Fuel Price &amp; Availability History</h6>

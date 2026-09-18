@@ -7,4 +7,9 @@
         </div>
         <small>&copy; {{ date('Y') }} GeoGas ManFort. All rights reserved.</small>
     </div>
+    @guest
+    <div class="container mt-2">
+        <a href="{{ route('login') }}" class="small" style="color:#9CA3AF;">Station / LGU Login</a>
+    </div>
+    @endguest
 </footer>

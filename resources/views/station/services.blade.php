@@ -1,15 +1,5 @@
 @php
-$isManager = auth()->user()->isManager();
-$sidebarItems = collect([
-    ["route"=>"station.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2","perm"=>"view_dashboard"],
-    ["route"=>"station.prices.edit","label"=>"Update Fuel Prices","icon"=>"bi-pencil-square","perm"=>"update_prices"],
-    ["route"=>"station.history","label"=>"Price History","icon"=>"bi-clock-history","perm"=>"view_price_history"],
-    ["route"=>"station.services.edit","label"=>"Station Services","icon"=>"bi-tools","perm"=>"manage_services"],
-    ["route"=>"station.reports.index","label"=>"Reports","icon"=>"bi-file-earmark-text-fill","perm"=>"view_reports"],
-])->filter(fn($i) => auth()->user()->hasStationPermission($i["perm"]))->values()->all();
-if ($isManager) {
-    $sidebarItems[] = ["route"=>"station.staff.index","label"=>"Staff Accounts","icon"=>"bi-people-fill"];
-}
+$sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
 @endphp
 @extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'station.services.edit'])
 @section('title', 'Station Services')

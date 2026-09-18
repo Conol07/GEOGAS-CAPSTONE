@@ -16,6 +16,36 @@
         <label class="form-label">Contact Number</label>
         <input type="text" name="contact_number" class="form-control" value="{{ old('contact_number', $s->contact_number ?? '') }}">
     </div>
+    <div class="col-md-6">
+        <label class="form-label">Station Logo</label><br>
+        <div class="d-flex align-items-center gap-2 mb-2">
+            @if($s && $s->logo_path)
+                <img src="{{ $s->logoUrl() }}" alt="Logo" class="rounded" style="width:56px; height:56px; object-fit:cover;">
+                <div class="form-check small">
+                    <input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="removeLogo">
+                    <label class="form-check-label" for="removeLogo">Remove</label>
+                </div>
+            @endif
+        </div>
+        <input type="file" name="logo" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+        <div class="form-text">JPG, PNG, or WEBP. Max 2MB.</div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Station Photo</label><br>
+        @if($s && $s->photo_path)
+            <img src="{{ $s->photoUrl() }}" alt="{{ $s->station_name }}" class="rounded mb-2" style="max-height:100px;">
+            <div class="form-check small mb-1">
+                <input class="form-check-input" type="checkbox" name="remove_photo" value="1" id="removePhoto">
+                <label class="form-check-label" for="removePhoto">Remove current photo</label>
+            </div>
+        @endif
+        <input type="file" name="photo" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+        <div class="form-text">JPG, PNG, or WEBP. Max 4MB.</div>
+    </div>
+    <div class="col-md-12">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="2" maxlength="2000">{{ old('description', $s->description ?? '') }}</textarea>
+    </div>
     <div class="col-md-8">
         <label class="form-label">Address</label>
         <input type="text" name="address" class="form-control" value="{{ old('address', $s->address ?? '') }}" required>

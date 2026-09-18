@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 @unless(request()->routeIs('lgu.*') || request()->routeIs('station.*')) has-tabbar @endunless">
 
 <x-navbar />
 
@@ -39,6 +39,9 @@
 </main>
 
 <x-footer />
+@unless(request()->routeIs('lgu.*') || request()->routeIs('station.*'))
+    <x-mobile-tabbar />
+@endunless
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>

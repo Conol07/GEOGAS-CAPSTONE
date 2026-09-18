@@ -1,12 +1,5 @@
 @php
-$sidebarItems = [
-    ["route"=>"lgu.dashboard","label"=>"Dashboard","icon"=>"bi-speedometer2"],
-    ["route"=>"lgu.stations.index","label"=>"Stations","icon"=>"bi-shop"],
-    ["route"=>"lgu.users.index","label"=>"Users","icon"=>"bi-people-fill"],
-    ["route"=>"lgu.complaints.index","label"=>"Complaints","icon"=>"bi-flag-fill"],
-    ["route"=>"lgu.analytics.index","label"=>"Analytics","icon"=>"bi-graph-up"],
-    ["route"=>"lgu.reports.index","label"=>"Reports","icon"=>"bi-file-earmark-text-fill"],
-];
+$sidebarItems = \App\Support\Nav::lguSidebar();
 @endphp
 @extends('layouts.dashboard', ['sidebarItems' => $sidebarItems, 'activeRoute' => 'lgu.reports.index'])
 @section('title', 'Station Report')

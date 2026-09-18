@@ -230,6 +230,25 @@ a:hover { color: var(--gg-accent-dark); }
 .gg-price-grid { display: flex; gap: 1.5rem; margin-bottom: 0.75rem; }
 .gg-price-item .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--gg-accent); font-weight: 700; }
 .gg-price-item .value { font-size: 1.35rem; font-weight: 800; color: var(--gg-dark); }
+.gg-price-overview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.25rem;
+    border-bottom: 1px solid var(--gg-border);
+    text-decoration: none;
+    color: inherit;
+}
+.gg-price-overview-row:last-child { border-bottom: none; }
+.gg-price-overview-row:hover { background: var(--gg-bg); }
+
+.gg-price-highlighted {
+    outline: 2px solid var(--gg-accent);
+    outline-offset: 2px;
+    border-radius: 10px;
+    background: var(--gg-accent-light);
+    padding: 0.5rem;
+}
 .gg-lowest-badge {
     display: inline-block;
     background: var(--gg-accent-light);
@@ -394,9 +413,173 @@ a:hover { color: var(--gg-accent-dark); }
 .gg-footer .bi { color: var(--gg-accent); }
 .gg-footer small { color: #9CA3AF; }
 
+/* ---------- Nav search bar ---------- */
+.gg-nav-search { width: 100%; max-width: 320px; }
+@media (min-width: 768px) {
+    .gg-nav-search { width: 260px; }
+}
+.gg-search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: #fff;
+    border: 1px solid var(--gg-border);
+    border-radius: 10px;
+    box-shadow: var(--gg-shadow-md);
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 1050;
+}
+.gg-search-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--gg-border);
+    text-decoration: none;
+    color: inherit;
+}
+.gg-search-result:last-child { border-bottom: none; }
+.gg-search-result:hover { background: var(--gg-bg); }
+.gg-search-empty { padding: 0.75rem; font-size: 0.825rem; color: var(--gg-muted); }
+
+/* ---------- Station logo ---------- */
+.gg-station-logo {
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid var(--gg-border);
+    flex-shrink: 0;
+}
+.gg-station-logo-placeholder {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--gg-accent-light);
+    color: var(--gg-accent);
+}
+
+/* ---------- Dashboard hero (mockup-style) ---------- */
+.gg-dash-hero {
+    position: relative;
+    border-radius: var(--gg-radius-card);
+    overflow: hidden;
+    padding: 3rem 2rem;
+    background:
+        linear-gradient(120deg, rgba(24,24,24,0.88) 0%, rgba(24,24,24,0.55) 55%, rgba(245,130,32,0.35) 100%),
+        repeating-linear-gradient(135deg, #2b2b2b 0px, #2b2b2b 2px, #1f1f1f 2px, #1f1f1f 40px);
+    color: #fff;
+}
+.gg-dash-hero h1 { color: #fff; font-size: 2.5rem; line-height: 1.1; }
+.gg-dash-hero .accent { color: var(--gg-accent); }
+.gg-dash-hero p { color: #E5E5E5; max-width: 480px; }
+.gg-dash-stats {
+    background: rgba(24,24,24,0.55);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    backdrop-filter: blur(2px);
+}
+.gg-dash-stats .stat-value { font-size: 1.4rem; font-weight: 800; color: #fff; }
+.gg-dash-stats .stat-label { font-size: 0.7rem; color: #D1D1D1; text-transform: uppercase; letter-spacing: .03em; }
+
+/* Nearby / update list rows (dashboard) */
+.gg-dash-station-row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--gg-border);
+    cursor: pointer;
+}
+.gg-dash-station-row:last-child { border-bottom: none; }
+.gg-dash-station-row:hover { background: var(--gg-bg); }
+.gg-dash-price-row { display: flex; justify-content: space-between; font-size: 0.78rem; }
+
+.gg-update-card {
+    display: flex; gap: 0.6rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: var(--gg-bg);
+    margin-bottom: 0.6rem;
+    font-size: 0.82rem;
+}
+.gg-update-card .icon-badge {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.gg-tip-card {
+    background: var(--gg-accent-light);
+    border: 1px solid var(--gg-accent);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 0.82rem;
+}
+
+/* ---------- Mobile bottom tab bar ---------- */
+.gg-tabbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 1030;
+    display: flex;
+    background: #fff;
+    border-top: 1px solid var(--gg-border);
+    box-shadow: 0 -2px 8px rgba(16,24,40,0.06);
+}
+.gg-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0.5rem 0.25rem calc(0.5rem + env(safe-area-inset-bottom));
+    color: var(--gg-muted);
+    text-decoration: none;
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+.gg-tab .bi { font-size: 1.15rem; }
+.gg-tab.active { color: var(--gg-accent); }
+@media (max-width: 767.98px) {
+    body.has-tabbar { padding-bottom: 64px; }
+}
+
+/* ---------- Location / nearby-station widgets (Home page) ---------- */
+.gg-location-card {
+    background: #fff;
+    border: 1px solid var(--gg-border);
+    border-radius: var(--gg-radius-card);
+    padding: 1.25rem;
+}
+.gg-nearby-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--gg-border);
+}
+.gg-nearby-item:last-child { border-bottom: none; }
+.gg-update-item {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--gg-border);
+    font-size: 0.875rem;
+}
+.gg-update-item:last-child { border-bottom: none; }
+.gg-update-item .bi { color: var(--gg-accent); margin-top: 0.15rem; }
+
+/* Marker price label (small tag beside a map pin) */
+.gg-marker-price {
+    position: absolute; top: -8px; left: 32px;
+    background: #fff; border: 1px solid var(--gg-border);
+    border-radius: 999px; padding: 1px 7px;
+    font-size: 0.68rem; font-weight: 700; color: var(--gg-dark);
+    white-space: nowrap; box-shadow: var(--gg-shadow-sm);
+}
+
 /* ---------- Print ---------- */
 @media print {
-    .no-print, .gg-navbar, .gg-footer, .gg-sidebar { display: none !important; }
+    .no-print, .gg-navbar, .gg-footer, .gg-sidebar, .gg-tabbar { display: none !important; }
     .gg-main { padding: 0 !important; }
     .gg-admin-shell { display: block !important; }
 }

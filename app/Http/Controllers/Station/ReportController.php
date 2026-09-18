@@ -29,6 +29,8 @@ class ReportController extends Controller
         $complaints = Complaint::where('station_id', $station->id)->latest('created_at')->get();
 
         if ($request->input('export') === 'csv') {
+            abort_unless($request->user()->hasStationPermission('generate_reports'), 403, 'Your account does not have permission to export reports.');
+
             return $this->csv('station-price-history', ['Fuel Type', 'Price', 'Availability', 'Updated By', 'Date'], $priceHistory->map(fn ($p) => [
                 $p->fuelType->name, number_format($p->price, 2), $p->availability_status, $p->updater->name, $p->created_at->format('Y-m-d H:i'),
             ]));
