@@ -39,6 +39,7 @@ class Nav
             ['route' => 'lgu.stations.index', 'label' => 'Stations', 'icon' => 'bi-shop'],
             ['route' => 'lgu.users.index', 'label' => 'Users', 'icon' => 'bi-people-fill'],
             ['route' => 'lgu.complaints.index', 'label' => 'Complaints', 'icon' => 'bi-flag-fill'],
+            ['route' => 'lgu.news.index', 'label' => 'News & Announcements', 'icon' => 'bi-megaphone-fill'],
             ['route' => 'lgu.analytics.index', 'label' => 'Analytics', 'icon' => 'bi-graph-up'],
             ['route' => 'lgu.reports.index', 'label' => 'Reports', 'icon' => 'bi-file-earmark-text-fill'],
             ['route' => 'lgu.session-logs.index', 'label' => 'Session Logs', 'icon' => 'bi-clock-history'],

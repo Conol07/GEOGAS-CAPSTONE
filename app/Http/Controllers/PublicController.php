@@ -6,6 +6,7 @@ use App\Models\Complaint;
 use App\Models\FuelPrice;
 use App\Models\FuelType;
 use App\Models\GasolineStation;
+use App\Models\News;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -32,12 +33,15 @@ class PublicController extends Controller
 
         $updates = $this->recentActivityFeed();
 
+        $latestNews = News::published()->with('station')->latest('published_at')->take(3)->get();
+
         return view('public.home', [
             'stations' => $mapStations,
             'previewStations' => $previewStations,
             'stats' => $stats,
             'priceOverview' => $priceOverview,
             'updates' => $updates,
+            'latestNews' => $latestNews,
         ]);
     }
 
@@ -389,5 +393,25 @@ class PublicController extends Controller
         $complaint = Complaint::where('reference_no', $referenceNo)->firstOrFail();
 
         return view('public.complaint-confirmation', compact('complaint'));
+    }
+
+    /**
+     * Published LGU news/announcements only — drafts and archived items
+     * never reach the public site.
+     */
+    public function newsIndex()
+    {
+        $news = News::published()->with('station', 'fuelType')->latest('published_at')->paginate(9);
+
+        return view('public.news.index', compact('news'));
+    }
+
+    public function newsShow(News $news)
+    {
+        abort_unless($news->status === 'published' && (! $news->published_at || $news->published_at->lte(now())), 404);
+
+        $news->load('station', 'fuelType');
+
+        return view('public.news.show', compact('news'));
     }
 }

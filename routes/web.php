@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Lgu\AnalyticsController;
 use App\Http\Controllers\Lgu\ComplaintController;
 use App\Http\Controllers\Lgu\DashboardController as LguDashboardController;
+use App\Http\Controllers\Lgu\NewsController as LguNewsController;
 use App\Http\Controllers\Lgu\ReportController as LguReportController;
 use App\Http\Controllers\Lgu\SessionLogController as LguSessionLogController;
 use App\Http\Controllers\Lgu\StationController as LguStationController;
@@ -36,6 +37,9 @@ Route::get('/search', [PublicController::class, 'search'])->name('search'); // J
 Route::get('/complaints/new', [PublicController::class, 'createComplaint'])->name('complaints.create');
 Route::post('/complaints', [PublicController::class, 'storeComplaint'])->name('complaints.store');
 Route::get('/complaints/confirmation/{referenceNo}', [PublicController::class, 'complaintConfirmation'])->name('complaints.confirmation');
+
+Route::get('/news', [PublicController::class, 'newsIndex'])->name('news.index');
+Route::get('/news/{news}', [PublicController::class, 'newsShow'])->name('news.show');
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
@@ -142,4 +146,12 @@ Route::middleware(['auth', 'role:lgu_admin'])
         Route::get('/reports/station-record', [LguReportController::class, 'stationRecord'])->name('reports.station-record');
 
         Route::get('/session-logs', [LguSessionLogController::class, 'index'])->name('session-logs.index');
+
+        Route::get('/news', [LguNewsController::class, 'index'])->name('news.index');
+        Route::get('/news/create', [LguNewsController::class, 'create'])->name('news.create');
+        Route::post('/news', [LguNewsController::class, 'store'])->name('news.store');
+        Route::get('/news/{news}/edit', [LguNewsController::class, 'edit'])->name('news.edit');
+        Route::put('/news/{news}', [LguNewsController::class, 'update'])->name('news.update');
+        Route::patch('/news/{news}/archive', [LguNewsController::class, 'archive'])->name('news.archive');
+        Route::delete('/news/{news}', [LguNewsController::class, 'destroy'])->name('news.destroy');
     });
