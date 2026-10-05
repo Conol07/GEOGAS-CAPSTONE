@@ -36,6 +36,10 @@ class AnalyticsController extends Controller
             ];
         });
 
+        // The specific highest- and lowest-price station overall (for the currently filtered fuel type/date range).
+        $highestPriceEntry = $currentPrices->sortByDesc('price')->first();
+        $lowestPriceEntry = $currentPrices->sortBy('price')->first();
+
         // Price comparison per barangay (uses the currently selected fuel type, or all)
         $priceByBarangay = $currentPrices->groupBy('station.barangay')->map(function ($rows) {
             return [
@@ -74,7 +78,7 @@ class AnalyticsController extends Controller
         return view('lgu.analytics.index', compact(
             'fuelTypes', 'barangays', 'priceByFuelType', 'priceByBarangay',
             'stationsByBarangay', 'availabilityCounts', 'complaintsByCategory',
-            'complaintsByStation', 'trend'
+            'complaintsByStation', 'trend', 'highestPriceEntry', 'lowestPriceEntry'
         ));
     }
 }

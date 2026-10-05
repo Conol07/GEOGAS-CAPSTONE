@@ -49,6 +49,11 @@ class GasolineStation extends Model
         return $this->hasMany(Complaint::class, 'station_id');
     }
 
+    public function news()
+    {
+        return $this->hasMany(News::class, 'related_station_id');
+    }
+
     /**
      * The latest price+availability row per fuel type for this station.
      * Loaded on demand via GasolineStation::withCurrentPrices() scope below,

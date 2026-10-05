@@ -141,22 +141,98 @@
     </div>
 </div>
 
-{{-- Larger map modal --}}
+@if($latestNews->isNotEmpty())
+<div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+    <h6 class="mb-0"><i class="bi bi-megaphone-fill me-1" style="color:var(--gg-accent);"></i>Latest News</h6>
+    <a href="{{ route('news.index') }}" class="small">View All News</a>
+</div>
+<div class="row g-3 mb-4">
+    @foreach($latestNews as $n)
+        <div class="col-md-4">
+            <x-news-card :news="$n" />
+        </div>
+    @endforeach
+</div>
+@endif
+
+{{-- Larger map modal — full GIS console --}}
 <div class="modal fade" id="largerMapModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-dialog modal-fullscreen modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Gasoline Stations Around You</h5>
+                <h5 class="modal-title"><i class="bi bi-map me-1"></i>GIS Fuel Price Map — Manolo Fortich</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
-                <div id="largerMap" style="height:70vh;"></div>
+                <div class="gg-gis-controls">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-6 col-md-2">
+                            <label class="form-label small mb-1">Fuel Type</label>
+                            <select id="gisFuelType" class="form-select form-select-sm"></select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label small mb-1">Color Markers By</label>
+                            <select id="gisColorMode" class="form-select form-select-sm">
+                                <option value="availability">Fuel Availability</option>
+                                <option value="price">Price Level</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label small mb-1">Price Analysis</label>
+                            <select id="gisPriceAnalysis" class="form-select form-select-sm">
+                                <option value="all">All Prices</option>
+                                <option value="lowest">Lowest Price</option>
+                                <option value="highest">Highest Price</option>
+                                <option value="average">Average Price</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small mb-1">Barangay</label>
+                            <select id="gisBarangay" class="form-select form-select-sm">
+                                <option value="">All Barangays</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label small mb-1 d-block">Layers</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="form-check form-check-inline small m-0">
+                                    <input class="form-check-input gis-layer-toggle" type="checkbox" id="layerHeatmap">
+                                    <label class="form-check-label" for="layerHeatmap">Heatmap</label>
+                                </div>
+                                <div class="form-check form-check-inline small m-0">
+                                    <input class="form-check-input gis-layer-toggle" type="checkbox" id="layerAreas">
+                                    <label class="form-check-label" for="layerAreas">Barangay Areas</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gg-gis-body">
+                    <div id="largerMap" class="gg-gis-map"></div>
+                    <div class="gg-gis-sidebar">
+                        <div class="gg-gis-legend mb-3">
+                            <div class="fw-bold small mb-2">PRICE LEVEL <span class="text-muted-gg fw-normal">(vs. FUEL AVAILABILITY below)</span></div>
+                            <div class="gis-legend-row"><span class="dot" style="background:#15803D;"></span>Low Price</div>
+                            <div class="gis-legend-row"><span class="dot" style="background:#EAB308;"></span>Moderate Price</div>
+                            <div class="gis-legend-row"><span class="dot" style="background:#F58220;"></span>High Price</div>
+                            <div class="gis-legend-row"><span class="dot" style="background:#B91C1C;"></span>Highest Price</div>
+                            <hr class="my-2">
+                            <div class="fw-bold small mb-2">FUEL AVAILABILITY</div>
+                            <div class="gis-legend-row"><span class="dot" style="background:#15803D;"></span>Has Enough Gasoline</div>
+                            <div class="gis-legend-row"><span class="dot" style="background:#B45309;"></span>Almost Empty</div>
+                            <div class="gis-legend-row"><span class="dot" style="background:#B91C1C;"></span>No Gasoline</div>
+                        </div>
+                        <div id="gisSummary" class="gg-gis-summary mb-3"></div>
+                        <div id="gisAreaAnalysis" class="gg-gis-summary d-none"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <script>
     const homeStations = @json($stations);
 
@@ -207,13 +283,183 @@
     }
 
     const homeMapInstance = buildMap('homeMap');
-    let largerMapInstance = null;
+
+    // ================= GIS console (the "View Larger Map" modal) =================
+    let gisMap = null;
+    let gisMarkersLayer = null;
+    let gisHeatLayer = null;
+    let gisAreaLayer = null;
+
+    const priceLevelColors = { low: '#15803D', moderate: '#EAB308', high: '#F58220', highest: '#B91C1C' };
+
+    function priceLevelIcon(color, selected = false) {
+        return L.divIcon({
+            className: '',
+            html: `<div class="gg-marker-pin${selected ? ' selected' : ''}" style="background:${color};"><i class="bi bi-fuel-pump-fill"></i></div>`,
+            iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26],
+        });
+    }
+
+    // Dynamic quartile classification — never a manual station→color assignment.
+    function classifyPrices(prices) {
+        const sorted = [...prices].sort((a, b) => a - b);
+        const q = p => {
+            const idx = (sorted.length - 1) * p;
+            const lo = Math.floor(idx), hi = Math.ceil(idx);
+            return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+        };
+        return { q25: q(0.25), q50: q(0.5), q75: q(0.75) };
+    }
+    function levelFor(price, bounds) {
+        if (price <= bounds.q25) return 'low';
+        if (price <= bounds.q50) return 'moderate';
+        if (price <= bounds.q75) return 'high';
+        return 'highest';
+    }
+
+    function priceForFuel(station, fuelTypeId) {
+        return (station.current_prices_list || []).find(p => String(p.fuel_type_id) === String(fuelTypeId));
+    }
+
+    function populateGisFilters() {
+        const fuelSelect = document.getElementById('gisFuelType');
+        const seen = new Set();
+        homeStations.forEach(s => (s.current_prices_list || []).forEach(p => {
+            if (!seen.has(p.fuel_type_id)) {
+                seen.add(p.fuel_type_id);
+                const opt = document.createElement('option');
+                opt.value = p.fuel_type_id;
+                opt.textContent = p.fuel_type.name;
+                fuelSelect.appendChild(opt);
+            }
+        }));
+
+        const barangaySelect = document.getElementById('gisBarangay');
+        [...new Set(homeStations.map(s => s.barangay))].sort().forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b; opt.textContent = b;
+            barangaySelect.appendChild(opt);
+        });
+    }
+
+    function renderGisMap() {
+        if (!gisMap) return;
+
+        const fuelTypeId = document.getElementById('gisFuelType').value;
+        const colorMode = document.getElementById('gisColorMode').value;
+        const priceAnalysis = document.getElementById('gisPriceAnalysis').value;
+        const barangay = document.getElementById('gisBarangay').value;
+
+        const filtered = homeStations.filter(s => !barangay || s.barangay === barangay);
+        const priced = filtered.map(s => ({ station: s, price: priceForFuel(s, fuelTypeId) })).filter(x => x.price);
+        const prices = priced.map(x => parseFloat(x.price.price));
+        const bounds = prices.length ? classifyPrices(prices) : null;
+
+        let lowestEntry = null, highestEntry = null, avg = null;
+        if (priced.length) {
+            lowestEntry = priced.reduce((a, b) => (parseFloat(a.price.price) <= parseFloat(b.price.price) ? a : b));
+            highestEntry = priced.reduce((a, b) => (parseFloat(a.price.price) >= parseFloat(b.price.price) ? a : b));
+            avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+        }
+
+        // Markers
+        if (gisMarkersLayer) gisMap.removeLayer(gisMarkersLayer);
+        gisMarkersLayer = L.layerGroup();
+
+        priced.forEach(({ station: s, price: p }) => {
+            let color, selected = false;
+            if (colorMode === 'price' && bounds) {
+                color = priceLevelColors[levelFor(parseFloat(p.price), bounds)];
+            } else {
+                color = (availabilityMeta[p.availability_status] || availabilityMeta.unknown).color;
+            }
+            if (priceAnalysis === 'lowest' && lowestEntry && s.id === lowestEntry.station.id) selected = true;
+            if (priceAnalysis === 'highest' && highestEntry && s.id === highestEntry.station.id) selected = true;
+            const dimmed = (priceAnalysis === 'lowest' || priceAnalysis === 'highest') && !selected;
+
+            const marker = L.marker([s.latitude, s.longitude], {
+                icon: priceLevelIcon(color, selected),
+                opacity: dimmed ? 0.35 : 1,
+            }).bindPopup(popupHtml(s));
+            gisMarkersLayer.addLayer(marker);
+        });
+        gisMarkersLayer.addTo(gisMap);
+
+        // Heatmap (intensity = normalized price for the selected fuel type)
+        if (gisHeatLayer) { gisMap.removeLayer(gisHeatLayer); gisHeatLayer = null; }
+        if (document.getElementById('layerHeatmap').checked && prices.length && typeof L.heatLayer === 'function') {
+            const min = Math.min(...prices), max = Math.max(...prices);
+            const points = priced.map(({ station: s, price: p }) => {
+                const norm = max > min ? (parseFloat(p.price) - min) / (max - min) : 0.5;
+                return [s.latitude, s.longitude, 0.3 + norm * 0.7];
+            });
+            gisHeatLayer = L.heatLayer(points, { radius: 35, blur: 25, maxZoom: 15 }).addTo(gisMap);
+        }
+
+        // Barangay area layer + analysis panel
+        if (gisAreaLayer) { gisMap.removeLayer(gisAreaLayer); gisAreaLayer = null; }
+        const areaPanel = document.getElementById('gisAreaAnalysis');
+        if (document.getElementById('layerAreas').checked) {
+            const byBarangay = {};
+            priced.forEach(({ station: s, price: p }) => {
+                byBarangay[s.barangay] = byBarangay[s.barangay] || { lats: [], lngs: [], prices: [] };
+                byBarangay[s.barangay].lats.push(s.latitude);
+                byBarangay[s.barangay].lngs.push(s.longitude);
+                byBarangay[s.barangay].prices.push(parseFloat(p.price));
+            });
+
+            gisAreaLayer = L.layerGroup();
+            let panelHtml = '<div class="fw-bold small mb-2">AREA / BARANGAY ANALYSIS</div>';
+            Object.entries(byBarangay).forEach(([name, d]) => {
+                const lat = d.lats.reduce((a, b) => a + b, 0) / d.lats.length;
+                const lng = d.lngs.reduce((a, b) => a + b, 0) / d.lngs.length;
+                const lo = Math.min(...d.prices), hi = Math.max(...d.prices);
+                const av = d.prices.reduce((a, b) => a + b, 0) / d.prices.length;
+                L.circle([lat, lng], {
+                    radius: 250 + d.prices.length * 60,
+                    color: '#181818', fillColor: '#F58220', fillOpacity: 0.15, weight: 1,
+                }).bindTooltip(`${name}: ₱${av.toFixed(2)} avg (${d.prices.length} station${d.prices.length>1?'s':''})`).addTo(gisAreaLayer);
+
+                panelHtml += `<div class="gis-area-row">
+                                <div class="fw-semibold">${name}</div>
+                                <div class="text-muted-gg" style="font-size:.75rem;">Lowest ₱${lo.toFixed(2)} &middot; Avg ₱${av.toFixed(2)} &middot; Highest ₱${hi.toFixed(2)} &middot; ${d.prices.length} station${d.prices.length>1?'s':''}</div>
+                              </div>`;
+            });
+            gisAreaLayer.addTo(gisMap);
+            areaPanel.innerHTML = panelHtml;
+            areaPanel.classList.remove('d-none');
+        } else {
+            areaPanel.classList.add('d-none');
+        }
+
+        // Summary panel
+        const fuelName = fuelSelectLabel();
+        document.getElementById('gisSummary').innerHTML = priced.length ? `
+            <div class="fw-bold small mb-2">${fuelName.toUpperCase()} PRICE SUMMARY</div>
+            <div class="gis-area-row"><div>Lowest</div><div class="fw-semibold" style="color:#15803D;">₱${parseFloat(lowestEntry.price.price).toFixed(2)} — ${lowestEntry.station.station_name}</div></div>
+            <div class="gis-area-row"><div>Highest</div><div class="fw-semibold" style="color:#B91C1C;">₱${parseFloat(highestEntry.price.price).toFixed(2)} — ${highestEntry.station.station_name}</div></div>
+            <div class="gis-area-row"><div>Average</div><div class="fw-semibold">₱${avg.toFixed(2)}</div></div>
+            <div class="text-muted-gg" style="font-size:.72rem;">Across ${priced.length} station${priced.length>1?'s':''}${barangay ? ' in ' + barangay : ''}</div>
+        ` : '<p class="text-muted-gg small mb-0">No price data for this selection.</p>';
+    }
+
+    function fuelSelectLabel() {
+        const sel = document.getElementById('gisFuelType');
+        return sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : 'Fuel';
+    }
 
     document.getElementById('largerMapModal').addEventListener('shown.bs.modal', function () {
-        if (!largerMapInstance) {
-            largerMapInstance = buildMap('largerMap');
+        if (!gisMap) {
+            gisMap = L.map('largerMap').setView([8.3696, 124.8642], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(gisMap);
+            populateGisFilters();
+            ['gisFuelType', 'gisColorMode', 'gisPriceAnalysis', 'gisBarangay'].forEach(id => {
+                document.getElementById(id).addEventListener('change', renderGisMap);
+            });
+            document.querySelectorAll('.gis-layer-toggle').forEach(el => el.addEventListener('change', renderGisMap));
+            renderGisMap();
         }
-        largerMapInstance.map.invalidateSize();
+        gisMap.invalidateSize();
     });
 
     function focusStation(id) {
@@ -239,9 +485,9 @@
             const { latitude, longitude } = pos.coords;
             homeMapInstance.map.setView([latitude, longitude], 14);
             L.marker([latitude, longitude]).addTo(homeMapInstance.map).bindPopup('You are here').openPopup();
-            if (largerMapInstance) {
-                largerMapInstance.map.setView([latitude, longitude], 14);
-                L.marker([latitude, longitude]).addTo(largerMapInstance.map).bindPopup('You are here');
+            if (gisMap) {
+                gisMap.setView([latitude, longitude], 14);
+                L.marker([latitude, longitude]).addTo(gisMap).bindPopup('You are here');
             }
 
             fetch(`{{ route('nearest') }}?lat=${latitude}&lng=${longitude}`)

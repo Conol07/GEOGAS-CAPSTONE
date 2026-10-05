@@ -64,6 +64,33 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
     </div>
 </div>
 
+@if($highestPriceEntry || $lowestPriceEntry)
+<div class="row g-3 mb-4">
+    @if($lowestPriceEntry)
+    <div class="col-md-6">
+        <div class="card h-100" style="border-color:#15803D;">
+            <div class="card-body">
+                <div class="small fw-bold" style="color:#15803D;">LOWEST-PRICE STATION</div>
+                <h6 class="mb-0">{{ $lowestPriceEntry->station->station_name }}</h6>
+                <div class="text-muted-gg small">{{ $lowestPriceEntry->fuelType->name }} — ₱{{ number_format($lowestPriceEntry->price,2) }} &middot; {{ $lowestPriceEntry->station->barangay }}</div>
+            </div>
+        </div>
+    </div>
+    @endif
+    @if($highestPriceEntry)
+    <div class="col-md-6">
+        <div class="card h-100" style="border-color:#B91C1C;">
+            <div class="card-body">
+                <div class="small fw-bold" style="color:#B91C1C;">HIGHEST-PRICE STATION</div>
+                <h6 class="mb-0">{{ $highestPriceEntry->station->station_name }}</h6>
+                <div class="text-muted-gg small">{{ $highestPriceEntry->fuelType->name }} — ₱{{ number_format($highestPriceEntry->price,2) }} &middot; {{ $highestPriceEntry->station->barangay }}</div>
+            </div>
+        </div>
+    </div>
+    @endif
+</div>
+@endif
+
 <div class="card mb-4">
     <div class="card-header">30-Day Average Price Trend</div>
     <div class="card-body"><canvas id="trendChart" height="120"></canvas></div>
