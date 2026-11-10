@@ -80,7 +80,7 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
             @else
                 <div class="d-flex flex-wrap gap-2">
                     @foreach($active as $svc)
-                        <span class="badge" style="background:var(--gg-accent-light); color:var(--gg-dark);">{{ $svc->label }}</span>
+                        <span class="badge" style="background:var(--gg-accent-light); color:var(--gg-heading);">{{ $svc->label }}</span>
                     @endforeach
                 </div>
             @endif

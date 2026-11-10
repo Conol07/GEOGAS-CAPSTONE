@@ -9,7 +9,7 @@
     @foreach(['' => 'All', 'local' => 'Manolo Fortich', 'national' => 'Philippines'] as $key => $label)
         <li class="nav-item">
             <a class="nav-link {{ ($scope ?? '') === (string) $key ? 'active' : '' }}" href="{{ route('news.index', $key ? ['scope' => $key] : []) }}"
-               @if(($scope ?? '') === (string) $key) style="background:var(--gg-accent); color:#fff;" @else style="color:var(--gg-dark);" @endif>{{ $label }}</a>
+               @if(($scope ?? '') === (string) $key) style="background:var(--gg-accent); color:#fff;" @else style="color:var(--gg-heading);" @endif>{{ $label }}</a>
         </li>
     @endforeach
 </ul>

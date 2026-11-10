@@ -1,6 +1,11 @@
+@php
+    $u = auth()->user();
+    $roleLabel = $u ? ($u->isLguAdmin() ? 'LGU Admin' : ($u->isManager() ? 'Station Manager' : 'Station Staff')) : null;
+    $home = $u ? ($u->isLguAdmin() ? route('lgu.dashboard') : route('station.dashboard')) : route('home');
+@endphp
 <nav class="navbar navbar-expand-md gg-navbar sticky-top py-2">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('home') }}">
+        <a class="navbar-brand" href="{{ $home }}">
             <i class="bi bi-fuel-pump-fill"></i>
             <span>GeoGas</span><span style="color:var(--gg-accent);">ManFort</span>
         </a>
@@ -8,10 +13,12 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navMain">
+            @guest
+            {{-- Public visitors --}}
             <ul class="navbar-nav me-auto ms-md-3">
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}"><i class="bi bi-house-fill me-1 d-md-none"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link {{ request()->routeIs('stations.*') ? 'active' : '' }}" href="{{ route('stations.index') }}"><i class="bi bi-shop me-1 d-md-none"></i>Station</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('cheapest') ? 'active' : '' }}" href="{{ route('cheapest') }}"><i class="bi bi-trophy-fill me-1 d-md-none"></i>Cheapest Fuel</a></li>
+                <li class="nav-item"><a class="nav-link {{ request()->routeIs('news.*') ? 'active' : '' }}" href="{{ route('news.index') }}"><i class="bi bi-megaphone-fill me-1 d-md-none"></i>News</a></li>
                 <li class="nav-item"><a class="nav-link {{ request()->routeIs('complaints.*') ? 'active' : '' }}" href="{{ route('complaints.create') }}"><i class="bi bi-flag-fill me-1 d-md-none"></i>Report an Issue</a></li>
             </ul>
 
@@ -23,14 +30,30 @@
                 </div>
                 <div id="navSearchResults" class="gg-search-dropdown d-none"></div>
             </div>
+            @endguest
 
             @auth
+            {{-- Signed-in accounts: role header only, no public links (no "Report an Issue") --}}
+            <div class="me-auto ms-md-3 my-2 my-md-0">
+                <span class="gg-role-pill"><i class="bi {{ $u->isLguAdmin() ? 'bi-bank2' : 'bi-person-workspace' }} me-1"></i>{{ $roleLabel }}</span>
+                @unless($u->isLguAdmin())
+                    @php $st = $u->stationAssignment?->station; @endphp
+                    @if($st)<span class="small text-muted-gg ms-2">{{ $st->station_name }}</span>@endif
+                @endunless
+            </div>
+            @endauth
+
+            <button type="button" class="gg-theme-toggle me-md-2 mb-2 mb-md-0" data-theme-toggle aria-label="Toggle light or dark mode" aria-pressed="false" title="Switch to dark mode">
+                <i class="bi bi-moon-stars-fill"></i><i class="bi bi-sun-fill"></i>
+            </button>
+
+            @guest
+                <a class="btn btn-brand btn-sm" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a>
+            @endguest
+            @auth
             <ul class="navbar-nav align-items-md-center gap-md-2">
-                @if(auth()->user()->isLguAdmin())
-                    <li class="nav-item"><a class="btn btn-outline-brand btn-sm" href="{{ route('lgu.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>LGU Dashboard</a></li>
-                @else
-                    <li class="nav-item"><a class="btn btn-outline-brand btn-sm" href="{{ route('station.dashboard') }}"><i class="bi bi-person-workspace me-1"></i>My Station</a></li>
-                @endif
+                <li class="nav-item"><a class="btn btn-outline-brand btn-sm" href="{{ $home }}"><i class="bi {{ $u->isLguAdmin() ? 'bi-speedometer2' : 'bi-house-gear-fill' }} me-1"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link py-1" href="{{ route('home') }}" target="_blank" rel="noopener" title="Open the public site"><i class="bi bi-box-arrow-up-right me-1"></i>Public site</a></li>
                 <li class="nav-item mt-2 mt-md-0">
                     <form action="{{ route('logout') }}" method="POST" class="d-inline">
                         @csrf
@@ -48,6 +71,7 @@
 (function () {
     const input = document.getElementById('navSearchInput');
     const results = document.getElementById('navSearchResults');
+    if (!input) return;
     let debounceTimer = null;
 
     const availabilityDot = {
@@ -56,8 +80,8 @@
 
     function logoOrPlaceholder(url, size) {
         return url
-            ? `<img src="${url}" style="width:${size}px;height:${size}px;border-radius:8px;object-fit:cover;border:1px solid #E5E5E5;flex-shrink:0;">`
-            : `<div style="width:${size}px;height:${size}px;border-radius:8px;background:#FFF1E6;color:#F58220;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-fuel-pump-fill"></i></div>`;
+            ? `<img src="${url}" style="width:${size}px;height:${size}px;border-radius:8px;object-fit:cover;border:1px solid var(--gg-border);flex-shrink:0;">`
+            : `<div style="width:${size}px;height:${size}px;border-radius:8px;background:var(--gg-accent-light);color:#F58220;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-fuel-pump-fill"></i></div>`;
     }
 
     function renderResults(items) {

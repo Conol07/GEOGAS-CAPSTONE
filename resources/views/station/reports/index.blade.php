@@ -47,23 +47,4 @@ $sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
     </table>
 </div>
 
-<h6 class="mb-2">Complaints Related to This Station</h6>
-<div class="gg-table gg-table-responsive">
-    <table class="table">
-        <thead><tr><th>Reference</th><th>Category</th><th>Subject</th><th>Status</th><th>Date</th></tr></thead>
-        <tbody>
-        @forelse($complaints as $c)
-            <tr>
-                <td class="small">{{ $c->reference_no }}</td>
-                <td class="small">{{ \App\Models\Complaint::CATEGORIES[$c->category] }}</td>
-                <td class="small">{{ $c->subject }}</td>
-                <td><x-status-badge :status="$c->status" /></td>
-                <td class="text-muted-gg small">{{ $c->created_at->format('M d, Y') }}</td>
-            </tr>
-        @empty
-            <tr><td colspan="5" class="text-muted-gg text-center">No complaints on record.</td></tr>
-        @endforelse
-        </tbody>
-    </table>
-</div>
 @endsection

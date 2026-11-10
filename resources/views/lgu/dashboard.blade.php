@@ -12,33 +12,33 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4" id="liveStats" data-live="60">
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-shop" label="Total Stations" :value="$stats['total_stations']" desc="Registered in the system" />
+        <x-stat-card icon="bi-shop" label="Total Stations" :href="route('lgu.stations.index')" :value="$stats['total_stations']" desc="Registered in the system" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-check-circle" label="Active Stations" :value="$stats['active_stations']" desc="Currently participating" />
+        <x-stat-card icon="bi-check-circle" label="Active Stations" :href="route('lgu.stations.index', ['status' => 'active'])" :value="$stats['active_stations']" desc="Currently participating" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-x-circle" label="Inactive Stations" :value="$stats['inactive_stations']" desc="Not currently listed" />
+        <x-stat-card icon="bi-x-circle" label="Inactive Stations" :href="route('lgu.stations.index', ['status' => 'inactive'])" :value="$stats['inactive_stations']" desc="Not currently listed" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-fuel-pump" label="Enough Fuel" :value="$stats['enough_fuel']" desc="Stations with sufficient stock" />
+        <x-stat-card icon="bi-fuel-pump" label="Enough Fuel" :href="route('lgu.gis.index')" :value="$stats['enough_fuel']" desc="Stations with sufficient stock" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-exclamation-triangle" label="Almost Empty" :value="$stats['almost_empty']" desc="Stations running low" />
+        <x-stat-card icon="bi-exclamation-triangle" label="Almost Empty" :href="route('lgu.gis.index')" :value="$stats['almost_empty']" desc="Stations running low" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-slash-circle" label="No Fuel" :value="$stats['no_fuel']" desc="Stations currently out" />
+        <x-stat-card icon="bi-slash-circle" label="No Fuel" :href="route('lgu.gis.index')" :value="$stats['no_fuel']" desc="Stations currently out" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-cash-stack" label="Average Fuel Price" value="{{ $stats['average_price'] ? '₱'.number_format($stats['average_price'],2) : '—' }}" desc="Across all fuel types" />
+        <x-stat-card icon="bi-cash-stack" label="Average Fuel Price" :href="route('lgu.analytics.index')" value="{{ $stats['average_price'] ? '₱'.number_format($stats['average_price'],2) : '—' }}" desc="Across all fuel types" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-flag-fill" label="Total Complaints" :value="$stats['total_complaints']" desc="All time" />
+        <x-stat-card icon="bi-flag-fill" label="Total Complaints" :href="route('lgu.complaints.index')" :value="$stats['total_complaints']" desc="All time" />
     </div>
     <div class="col-6 col-lg-4">
-        <x-stat-card icon="bi-hourglass-split" label="Pending Complaints" :value="$stats['pending_complaints']" desc="Awaiting review" />
+        <x-stat-card icon="bi-hourglass-split" label="Pending Complaints" :href="route('lgu.complaints.index', ['status' => 'pending'])" :value="$stats['pending_complaints']" desc="Awaiting review" />
     </div>
 </div>
 

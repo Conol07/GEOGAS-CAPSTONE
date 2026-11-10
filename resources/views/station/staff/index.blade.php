@@ -37,10 +37,6 @@ $sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
                             @csrf
                             <button class="btn btn-sm btn-outline-brand">Reset Password</button>
                         </form>
-                        <form method="POST" action="{{ route('station.staff.destroy', $assignment->user) }}" onsubmit="return confirm('Delete this staff account? This cannot be undone.');">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-outline-danger">Delete</button>
-                        </form>
                     </div>
                 </td>
             </tr>

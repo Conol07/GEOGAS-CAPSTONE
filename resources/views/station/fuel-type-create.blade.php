@@ -13,7 +13,7 @@ $sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
     <div class="card-body">
         <div class="d-flex flex-wrap gap-2">
             @foreach($fuelTypes as $ft)
-                <span class="badge" style="background:var(--gg-accent-light); color:var(--gg-dark); font-weight:600;">{{ $ft->name }}@if($ft->specification) <span class="text-muted-gg fw-normal">({{ $ft->specification }})</span>@endif</span>
+                <span class="badge" style="background:var(--gg-accent-light); color:var(--gg-heading); font-weight:600;">{{ $ft->name }}@if($ft->specification) <span class="text-muted-gg fw-normal">({{ $ft->specification }})</span>@endif</span>
             @endforeach
         </div>
     </div>

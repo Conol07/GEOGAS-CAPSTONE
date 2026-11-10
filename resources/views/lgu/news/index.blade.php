@@ -56,7 +56,7 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
         <tbody>
         @foreach($news as $n)
             <tr>
-                <td class="fw-semibold small">{{ $n->title }} @if($n->isNational())<span class="badge ms-1" style="background:#181818;color:#fff;font-size:.65rem;">PH</span>@endif</td>
+                <td class="fw-semibold small">{{ $n->title }} @if($n->isNational())<span class="badge ms-1" style="background:var(--gg-ph-bg);color:#fff;font-size:.65rem;">PH</span>@endif</td>
                 <td class="small">{{ \App\Models\News::CATEGORIES[$n->category] }}</td>
                 <td><span class="status-badge {{ $n->status=='published' ? 'status-approved' : ($n->status=='archived' ? 'status-inactive' : 'status-pending') }}">{{ ucfirst($n->status) }}</span></td>
                 <td class="text-muted-gg small">{{ optional($n->published_at)->format('M d, Y') ?? '—' }}</td>

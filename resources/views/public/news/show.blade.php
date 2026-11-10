@@ -9,8 +9,8 @@
         <img src="{{ $news->imageUrl() }}" alt="{{ $news->title }}" class="w-100" style="max-height:340px; object-fit:cover; border-radius:14px 14px 0 0;">
     @endif
     <div class="card-body p-4">
-        @if($news->isNational())<span class="badge mb-2 me-1" style="background:#181818; color:#fff;"><i class="bi bi-flag-fill me-1"></i>Philippines</span>@endif
-        <span class="badge mb-2" style="background:var(--gg-accent-light); color:var(--gg-dark); font-weight:600;">{{ \App\Models\News::CATEGORIES[$news->category] }}</span>
+        @if($news->isNational())<span class="badge mb-2 me-1" style="background:var(--gg-ph-bg); color:#fff;"><i class="bi bi-flag-fill me-1"></i>Philippines</span>@endif
+        <span class="badge mb-2" style="background:var(--gg-accent-light); color:var(--gg-heading); font-weight:600;">{{ \App\Models\News::CATEGORIES[$news->category] }}</span>
         <h4 class="mb-1">{{ $news->title }}</h4>
         <p class="text-muted-gg small mb-4">{{ optional($news->published_at)->format('F d, Y') }}</p>
 

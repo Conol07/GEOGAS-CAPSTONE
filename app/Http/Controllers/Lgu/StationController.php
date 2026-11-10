@@ -20,6 +20,7 @@ class StationController extends Controller
     {
         $stations = GasolineStation::search($request->input('q'))
             ->inBarangay($request->input('barangay'))
+            ->when(in_array($request->input('status'), ['active', 'inactive'], true), fn ($q) => $q->where('status', $request->input('status')))
             ->orderBy('station_name')
             ->paginate(12)
             ->withQueryString();

@@ -111,7 +111,6 @@ Route::middleware(['auth', 'role:manager'])
         Route::patch('/staff/{staff}', [StaffController::class, 'update'])->name('staff.update');
         Route::patch('/staff/{staff}/toggle-status', [StaffController::class, 'toggleStatus'])->name('staff.toggle');
         Route::post('/staff/{staff}/reset-password', [StaffController::class, 'resetPassword'])->name('staff.reset-password');
-        Route::delete('/staff/{staff}', [StaffController::class, 'destroy'])->name('staff.destroy');
     });
 
 /*

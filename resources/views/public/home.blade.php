@@ -8,13 +8,12 @@
         <div class="col-lg-9">
             <h1>Find Fuel<br><span class="accent">Near You</span></h1>
             <p class="mb-4">Up-to-date fuel prices. Nearby stations. A more informed Manolo Fortich.</p>
-            <button id="enableLocationBtn" class="btn btn-brand btn-lg"><i class="bi bi-geo-alt-fill me-1"></i>Activate My Location</button>
-            <p class="small mt-2 mb-0" style="color:#C9C9C9;">Find the nearest gasoline stations around you. Completely optional.</p>
         </div>
     </div>
 </div>
 
 {{-- PRICE OVERVIEW --}}
+<div id="liveOverview" data-live="60">
 @if($priceOverview->isNotEmpty())
 <div class="row g-3 mb-4">
     <div class="col-md-6">
@@ -28,7 +27,7 @@
                             <div class="text-muted-gg" style="font-size:.75rem;">{{ $row['lowest']->station->station_name }}</div>
                         </div>
                         <div class="text-end">
-                            <div class="fw-bold" style="color:#15803D;">₱{{ number_format($row['lowest']->price,2) }}</div>
+                            <div class="fw-bold" style="color:var(--gg-green);">₱{{ number_format($row['lowest']->price,2) }}</div>
                         </div>
                     </a>
                 @endforeach
@@ -46,7 +45,7 @@
                             <div class="text-muted-gg" style="font-size:.75rem;">{{ $row['highest']->station->station_name }}</div>
                         </div>
                         <div class="text-end">
-                            <div class="fw-bold" style="color:#B91C1C;">₱{{ number_format($row['highest']->price,2) }}</div>
+                            <div class="fw-bold" style="color:var(--gg-red-status);">₱{{ number_format($row['highest']->price,2) }}</div>
                         </div>
                     </a>
                 @endforeach
@@ -55,6 +54,7 @@
     </div>
 </div>
 @endif
+</div>
 
 {{-- GIS CONSOLE: markers / price heatmap / combined --}}
 <div class="mb-4" id="gisSection">
@@ -95,7 +95,7 @@
     </div>
 
     <div class="col-lg-5">
-        <div class="gg-location-card mb-3">
+        <div class="gg-location-card mb-3" id="liveUpdates" data-live="60">
             <h6 class="mb-3"><i class="bi bi-bell-fill me-1" style="color:var(--gg-accent);"></i>Latest Updates</h6>
             @forelse($updates as $u)
                 @php
@@ -180,8 +180,8 @@
                     ' <span style="color:' + m.color + ';" title="' + esc(m.label) + '">&#9679;</span></span></div>';
             }).join('');
             var logo = s.logo_url
-                ? '<img src="' + esc(s.logo_url) + '" alt="" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid #E5E5E5;flex-shrink:0;">'
-                : '<div style="width:40px;height:40px;border-radius:10px;background:#FFF1E6;color:#F58220;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-fuel-pump-fill"></i></div>';
+                ? '<img src="' + esc(s.logo_url) + '" alt="" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid var(--gg-border);flex-shrink:0;">'
+                : '<div style="width:40px;height:40px;border-radius:10px;background:var(--gg-accent-light);color:#F58220;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-fuel-pump-fill"></i></div>';
             var km = Number(s.distance_km);
             var dist = km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1) + ' km';
             var row = document.createElement('div');
@@ -195,7 +195,7 @@
     }
 
     var btn = document.getElementById('enableLocationBtn');
-    btn.addEventListener('click', function () {
+    if (btn) btn.addEventListener('click', function () {
         if (!navigator.geolocation) { alert('Geolocation is not supported by your browser. You can still browse everything else.'); return; }
         btn.disabled = true;
         btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Locating...';

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Station;
 
 use App\Http\Controllers\Controller;
-use App\Models\Complaint;
 use App\Models\FuelPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response as ResponseFacade;
@@ -26,8 +25,6 @@ class ReportController extends Controller
             ->take(100)
             ->get();
 
-        $complaints = Complaint::where('station_id', $station->id)->latest('created_at')->get();
-
         if ($request->input('export') === 'csv') {
             abort_unless($request->user()->hasStationPermission('generate_reports'), 403, 'Your account does not have permission to export reports.');
 
@@ -36,7 +33,7 @@ class ReportController extends Controller
             ]));
         }
 
-        return view('station.reports.index', compact('station', 'priceHistory', 'complaints'));
+        return view('station.reports.index', compact('station', 'priceHistory'));
     }
 
     private function csv(string $filename, array $headers, $rows)

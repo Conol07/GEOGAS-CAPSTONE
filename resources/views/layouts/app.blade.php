@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'GeoGas ManFort')</title>
     <meta name="description" content="Fuel Price Monitoring and Geospatial Analysis System for Manolo Fortich, Bukidnon">
+    <script>
+        (function () { try { var t = localStorage.getItem('ggTheme'); if (t !== 'dark' && t !== 'light') { t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; } document.documentElement.setAttribute('data-theme', t); document.documentElement.setAttribute('data-bs-theme', t); } catch (e) {} })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
-<body class="d-flex flex-column min-vh-100 @unless(request()->routeIs('lgu.*') || request()->routeIs('station.*')) has-tabbar @endunless">
+<body class="d-flex flex-column min-vh-100 @guest @unless(request()->routeIs('lgu.*') || request()->routeIs('station.*')) has-tabbar @endunless @endguest">
 
 <x-navbar />
 
@@ -44,12 +47,17 @@
 </main>
 
 <x-footer />
+@guest
 @unless(request()->routeIs('lgu.*') || request()->routeIs('station.*'))
     <x-mobile-tabbar />
 @endunless
+@endguest
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="{{ asset('js/theme.js') }}"></script>
+<script src="{{ asset('js/ui.js') }}"></script>
+<script src="{{ asset('js/live.js') }}"></script>
 @stack('scripts')
 </body>
 </html>

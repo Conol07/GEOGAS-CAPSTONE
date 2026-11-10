@@ -14,7 +14,7 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
 </div>
 
 <form method="GET" class="row g-2 mb-3">
-    <div class="col-md-5">
+    <div class="col-md-3">
         <input type="text" name="q" class="form-control" placeholder="Search stations" value="{{ request('q') }}">
     </div>
     <div class="col-md-3">
@@ -23,6 +23,13 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
             @foreach($barangays as $b)
                 <option value="{{ $b }}" @selected(request('barangay')==$b)>{{ $b }}</option>
             @endforeach
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">All Status</option>
+            <option value="active" @selected(request('status')=='active')>Active</option>
+            <option value="inactive" @selected(request('status')=='inactive')>Inactive</option>
         </select>
     </div>
     <div class="col-md-2"><button class="btn btn-outline-brand w-100">Search</button></div>

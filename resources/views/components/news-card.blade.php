@@ -9,11 +9,11 @@
     </div>
     <div class="body">
         @if($news->isNational())
-            <span class="badge mb-1 me-1" style="background:#181818; color:#fff; font-size:.68rem;"><i class="bi bi-flag-fill me-1"></i>Philippines</span>
+            <span class="badge mb-1 me-1" style="background:var(--gg-ph-bg); color:#fff; font-size:.68rem;"><i class="bi bi-flag-fill me-1"></i>Philippines</span>
         @else
-            <span class="badge mb-1 me-1" style="background:#fff; color:#181818; border:1px solid #181818; font-size:.68rem;"><i class="bi bi-geo-alt-fill me-1"></i>LGU</span>
+            <span class="badge mb-1 me-1" style="background:var(--gg-surface); color:var(--gg-heading); border:1px solid var(--gg-heading); font-size:.68rem;"><i class="bi bi-geo-alt-fill me-1"></i>LGU</span>
         @endif
-        <span class="badge mb-1" style="background:var(--gg-accent-light); color:var(--gg-dark); font-weight:600; font-size:.68rem;">{{ \App\Models\News::CATEGORIES[$news->category] }}</span>
+        <span class="badge mb-1" style="background:var(--gg-accent-light); color:var(--gg-heading); font-weight:600; font-size:.68rem;">{{ \App\Models\News::CATEGORIES[$news->category] }}</span>
         <h6 class="mb-1">{{ $news->title }}</h6>
         <p class="text-muted-gg small mb-2">{{ \Illuminate\Support\Str::limit(strip_tags($news->content), 90) }}</p>
         <div class="d-flex justify-content-between align-items-center">

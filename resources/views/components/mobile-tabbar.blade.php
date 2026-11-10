@@ -2,9 +2,6 @@
     <a href="{{ route('home') }}" class="gg-tab {{ request()->routeIs('home') ? 'active' : '' }}">
         <i class="bi bi-house-fill"></i><span>Home</span>
     </a>
-    <a href="{{ route('stations.index') }}" class="gg-tab {{ request()->routeIs('stations.*') ? 'active' : '' }}">
-        <i class="bi bi-shop"></i><span>Station</span>
-    </a>
     <a href="{{ route('cheapest') }}" class="gg-tab {{ request()->routeIs('cheapest') ? 'active' : '' }}">
         <i class="bi bi-trophy-fill"></i><span>Cheapest</span>
     </a>

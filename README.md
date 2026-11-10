@@ -176,3 +176,10 @@ National news starter items only (no stations): `php artisan db:seed --class=Nat
 4. Hands-free on Windows/XAMPP: Task Scheduler > new task, repeat every 1 minute, program `C:\xampp3\php\php.exe`, arguments `artisan schedule:run`, start in the project folder. The importer then runs daily at 07:00.
 5. Default is **drafts for LGU review**. `GEOGAS_NEWS_AUTO_PUBLISH=true` publishes headline + 300-character snippet + source link immediately.
 DOE does not offer a news feed that I could confirm, so the public page links to doe.gov.ph and the LGU can post DOE advisories by hand.
+
+## v17 - Trip cost estimator, dark mode, live updates
+
+- **Distance and travel time** (inside the GIS map): choose "Your Vehicle" (motorcycle, tricycle, car, van/SUV/pickup, jeepney, truck/bus) in the map toolbar and tap My Location. Each station popup then shows kilometers (straight line x 1.3) and estimated minutes (35 km/h motorcycle, 30 car/van, 25 tricycle/jeepney/truck), and the side panel lists the 3 nearest stations. The choice is remembered in the browser.
+- **Dark / light mode**: moon/sun button in the navbar. Follows the device setting until you choose; saved in `localStorage` (`ggTheme`). Printing always uses light.
+- **Live updates**: `public/js/live.js` refreshes regions marked `data-live="60"` (home price overview and latest updates, LGU and station dashboard cards) and the GIS map every 60 s while the tab is visible. A "Live" badge lets users pause. To make another region live, give it a unique `id` and `data-live="60"`.
+- No migration needed. After copying files run `php artisan optimize:clear`.

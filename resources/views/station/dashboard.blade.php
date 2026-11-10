@@ -27,7 +27,7 @@ $sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
     </div>
 @endif
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4" id="liveStationCards" data-live="60">
     <div class="col-md-6">
         <div class="card h-100">
             <div class="card-header"><i class="bi bi-cash-coin me-1"></i>Current Verified Prices</div>
@@ -82,25 +82,4 @@ $sidebarItems = \App\Support\Nav::stationSidebar(auth()->user());
 </div>
 @endif
 
-<h6 class="mb-2">Related Complaints</h6>
-@if($recentComplaints->isEmpty())
-    <x-empty-state icon="bi-flag" title="No complaints for this station" />
-@else
-<div class="gg-table gg-table-responsive">
-    <table class="table">
-        <thead><tr><th>Reference</th><th>Category</th><th>Subject</th><th>Status</th><th>Date</th></tr></thead>
-        <tbody>
-        @foreach($recentComplaints as $c)
-            <tr>
-                <td class="small">{{ $c->reference_no }}</td>
-                <td class="small">{{ \App\Models\Complaint::CATEGORIES[$c->category] }}</td>
-                <td class="small">{{ $c->subject }}</td>
-                <td><x-status-badge :status="$c->status" /></td>
-                <td class="text-muted-gg small">{{ $c->created_at->format('M d, Y') }}</td>
-            </tr>
-        @endforeach
-        </tbody>
-    </table>
-</div>
-@endif
 @endsection

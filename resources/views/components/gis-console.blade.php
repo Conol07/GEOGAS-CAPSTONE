@@ -18,10 +18,19 @@
                 <label class="form-check-label small fw-semibold" for="{{ $id }}Heat">Heatmap</label>
             </div>
             @endif
-            <div class="form-check form-switch m-0 pt-3">
-                <input class="form-check-input" type="checkbox" role="switch" id="{{ $id }}Stations" checked>
-                <label class="form-check-label small fw-semibold" for="{{ $id }}Stations">Stations</label>
+            <input type="checkbox" id="{{ $id }}Stations" checked hidden>
+            <div>
+                <label class="form-label small mb-0 d-block" for="{{ $id }}Vehicle">Your Vehicle</label>
+                <select id="{{ $id }}Vehicle" class="form-select form-select-sm" title="Used to estimate travel time to each station">
+                    <option value="motorcycle">Motorcycle</option>
+                    <option value="tricycle">Tricycle</option>
+                    <option value="car">Car</option>
+                    <option value="van">Van / SUV / Pickup</option>
+                    <option value="jeepney">Jeepney</option>
+                    <option value="truck">Truck / Bus</option>
+                </select>
             </div>
+            <div id="{{ $id }}Trip" class="gg-trip-result flex-grow-1" aria-live="polite"></div>
             <div class="d-flex gap-2 pt-3 ms-md-auto">
                 <button type="button" class="btn btn-sm btn-outline-brand" id="{{ $id }}Locate"><i class="bi bi-crosshair"></i> My Location</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#{{ $id }}More" aria-expanded="false"><i class="bi bi-sliders"></i> Filters</button>
@@ -164,12 +173,34 @@
         });
     }
 
+    var selectedId = null;
     var map, stations = [], markerLayer, heatLayer, areaLayer, userMarker, userLatLng = null, markerById = {}, started = false;
 
     function distanceKm(a, b) {
         var R = 6371, dLat = (b[0] - a[0]) * Math.PI / 180, dLng = (b[1] - a[1]) * Math.PI / 180;
         var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
         return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+    }
+
+    var SPEED = { motorcycle: 35, tricycle: 25, car: 30, van: 30, jeepney: 25, truck: 25 };
+    var VEHICLE_NAME = { motorcycle: 'motorcycle', tricycle: 'tricycle', car: 'car', van: 'van', jeepney: 'jeepney', truck: 'truck' };
+    function roadKm(a, b) { return distanceKm(a, b) * 1.3; } // straight line x 1.3 to allow for road curves
+    function vehicle() { var el = $('Vehicle'); return el && SPEED[el.value] ? el.value : 'motorcycle'; }
+    function minutesText(km) {
+        var m = Math.max(1, Math.round(km / SPEED[vehicle()] * 60));
+        return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
+    }
+    function tripText(s) { var k = roadKm(userLatLng, [s.latitude, s.longitude]); return k.toFixed(1) + ' km &middot; about ' + minutesText(k) + ' by ' + VEHICLE_NAME[vehicle()]; }
+
+    function updateTrip() {
+        var box = $('Trip'); if (!box) return;
+        var s = selectedId == null ? null : stations.filter(function (x) { return String(x.id) === String(selectedId); })[0];
+        if (!s) { box.innerHTML = '<div class="gg-trip-hint"><i class="bi bi-hand-index"></i> Tap a station on the map to see how far it is.</div>'; return; }
+        if (!userLatLng) { box.innerHTML = '<div class="gg-trip-hint"><strong>' + esc(s.station_name) + '</strong><br>Tap <strong>My Location</strong> to see how far it is from you.</div>'; return; }
+        var k = roadKm(userLatLng, [s.latitude, s.longitude]);
+        box.innerHTML = '<div class="gg-trip-card"><div class="gg-trip-name"><i class="bi bi-geo-alt-fill"></i> ' + esc(s.station_name) + '</div>' +
+            '<div><span class="gg-trip-big">' + k.toFixed(1) + ' km</span> <span class="gg-trip-big">&middot; ' + minutesText(k) + '</span> <span class="text-muted-gg small">by ' + VEHICLE_NAME[vehicle()] + '</span>' +
+            ' <a class="small ms-1" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + s.latitude + ',' + s.longitude + '">Directions</a></div></div>';
     }
 
     function staleAll(s) {
@@ -181,13 +212,13 @@
         var meta = AVAIL[s.availability] || AVAIL.unknown;
         var lines = (s.current_prices_list || []).map(function (p) {
             var m = AVAIL[p.availability_status] || AVAIL.unknown;
-            var bold = String(p.fuel_type_id) === String(focusFt) ? ' style="background:#FFF1E6;border-radius:4px;padding:0 3px;"' : '';
+            var bold = String(p.fuel_type_id) === String(focusFt) ? ' style="background:var(--gg-accent-light);border-radius:4px;padding:0 3px;"' : '';
             return '<div class="price-line"' + bold + '>' + esc(p.fuel_type.name) + ': <strong>&#8369;' + Number(p.price).toFixed(2) +
                 '</strong> <span style="color:' + m.color + ';" title="' + esc(m.label) + '">&#9679;</span></div>';
         }).join('');
         var newest = (s.current_prices_list || []).reduce(function (acc, p) { return !acc || p.created_at > acc ? p.created_at : acc; }, null);
         var logo = s.logo_url ? '<img src="' + esc(s.logo_url) + '" alt="" style="width:28px;height:28px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:6px;">' : '';
-        var dist = userLatLng ? '<div class="text-muted-gg" style="font-size:.74rem;">&#128205; ' + distanceKm(userLatLng, [s.latitude, s.longitude]).toFixed(1) + ' km from you</div>' : '';
+        var dist = userLatLng ? '<div class="text-muted-gg" style="font-size:.74rem;">&#128205; ' + tripText(s) + '</div>' : '';
         var services = (s.active_services || []).slice(0, 4).map(esc).join(', ');
         return '<div class="gg-popup"><h6>' + logo + esc(s.station_name) + '</h6>' +
             '<div class="addr">' + esc(s.address) + ', ' + esc(s.barangay) + '</div>' + dist +
@@ -254,7 +285,7 @@
                 var color = colorBy === 'price' ? LEVEL_COLOR[x.level] : (AVAIL[x.p.availability_status] || AVAIL.unknown).color;
                 var sel = (hi === 'lowest' && lo && x.s.id === lo.s.id) || (hi === 'highest' && up && x.s.id === up.s.id) || (hi === 'average' && nearAvg && x.s.id === nearAvg.s.id);
                 var dim = (hi !== 'all' && !sel) || false;
-                var m = L.marker([x.s.latitude, x.s.longitude], { icon: pinIcon(color, sel, x.s.logo_url), opacity: dim ? 0.4 : 1 }).bindPopup(popupHtml(x.s, ftId));
+                var m = L.marker([x.s.latitude, x.s.longitude], { icon: pinIcon(color, sel, x.s.logo_url), opacity: dim ? 0.4 : 1 }).bindPopup(popupHtml(x.s, ftId)).on('click', function () { selectedId = x.s.id; updateTrip(); });
                 markerLayer.addLayer(m);
                 markerById[x.s.id] = m;
             });
@@ -297,12 +328,23 @@
             areaPanel.classList.add('d-none');
         }
 
+        var near = '';
+        if (userLatLng) {
+            var nearest = inScope.map(function (s) { return { s: s, k: roadKm(userLatLng, [s.latitude, s.longitude]) }; }).sort(function (a, b) { return a.k - b.k; }).slice(0, 3);
+            near = '<div class="fw-bold small mt-3 mb-1"><i class="bi bi-geo-alt-fill" style="color:var(--gg-accent);"></i> NEAREST TO YOU <span class="text-muted-gg fw-normal">by ' + VEHICLE_NAME[vehicle()] + '</span></div>' +
+                nearest.map(function (x) {
+                    return '<div class="gis-area-row"><a href="#" data-near="' + esc(x.s.id) + '" class="fw-semibold text-decoration-none">' + esc(x.s.station_name) + '</a>' +
+                        '<div class="text-muted-gg" style="font-size:.74rem;">' + x.k.toFixed(1) + ' km &middot; about ' + minutesText(x.k) + '</div></div>';
+                }).join('');
+        } else {
+            near = '<div class="text-muted-gg small mt-3"><i class="bi bi-geo-alt"></i> Tap <strong>My Location</strong> to see how many kilometers and minutes away each station is.</div>';
+        }
         var sel = $('Fuel'), fname = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : 'Fuel';
         var latest = priced.reduce(function (acc, x) { return !acc || x.p.created_at > acc ? x.p.created_at : acc; }, null);
         $('Summary').innerHTML = priced.length ?
             '<div class="fw-bold small mb-1">' + esc(fname.toUpperCase()) + ' SUMMARY</div>' +
-            '<div class="gis-area-row"><div class="text-muted-gg" style="font-size:.74rem;">Lowest</div><div class="fw-semibold" style="color:#15803D;">&#8369;' + lo.p.price.toFixed(2) + ' &mdash; ' + esc(lo.s.station_name) + '</div></div>' +
-            '<div class="gis-area-row"><div class="text-muted-gg" style="font-size:.74rem;">Highest</div><div class="fw-semibold" style="color:#B91C1C;">&#8369;' + up.p.price.toFixed(2) + ' &mdash; ' + esc(up.s.station_name) + '</div></div>' +
+            '<div class="gis-area-row"><div class="text-muted-gg" style="font-size:.74rem;">Lowest</div><div class="fw-semibold" style="color:var(--gg-green);">&#8369;' + lo.p.price.toFixed(2) + ' &mdash; ' + esc(lo.s.station_name) + '</div></div>' +
+            '<div class="gis-area-row"><div class="text-muted-gg" style="font-size:.74rem;">Highest</div><div class="fw-semibold" style="color:var(--gg-red-status);">&#8369;' + up.p.price.toFixed(2) + ' &mdash; ' + esc(up.s.station_name) + '</div></div>' +
             '<div class="gis-area-row"><div class="text-muted-gg" style="font-size:.74rem;">Average / Range</div><div class="fw-semibold">&#8369;' + avg.toFixed(2) + ' <span class="text-muted-gg fw-normal">(&#8369;' + lo.p.price.toFixed(2) + ' &ndash; &#8369;' + up.p.price.toFixed(2) + ')</span></div></div>' +
             '<div class="text-muted-gg" style="font-size:.72rem;">' + priced.length + ' station' + (priced.length > 1 ? 's' : '') + ' included' + (brgy ? ' in ' + esc(brgy) : '') +
             (shown.length !== priced.length ? ' &middot; ' + shown.length + ' match filters' : '') +
@@ -310,6 +352,11 @@
             (priced.filter(function (x) { return x.p.stale; }).length ? ' &middot; ' + priced.filter(function (x) { return x.p.stale; }).length + ' with outdated prices (&#9888;)' : '') +
             (latest ? '<br>Latest update ' + esc(ago(latest)) : '') + '</div>'
             : '<p class="text-muted-gg small mb-0">No price data for this selection.</p>';
+        $('Summary').insertAdjacentHTML('beforeend', near);
+        updateTrip();
+        Array.prototype.forEach.call($('Summary').querySelectorAll('[data-near]'), function (a) {
+            a.addEventListener('click', function (e) { e.preventDefault(); window['gisFocusStation_' + ID](parseInt(a.getAttribute('data-near'), 10) || a.getAttribute('data-near')); });
+        });
     }
 
     function setUser(lat, lng) {
@@ -336,6 +383,8 @@
             .then(function (rows) {
                 stations = rows;
                 fillFilters();
+                try { var sv = localStorage.getItem('ggVehicle'); if (sv && SPEED[sv]) $('Vehicle').value = sv; } catch (e) {}
+                $('Vehicle').addEventListener('change', function () { try { localStorage.setItem('ggVehicle', this.value); } catch (e) {} render(); });
                 ['Fuel', 'Heat', 'Stations', 'Level', 'Avail', 'Brgy', 'Color', 'Hi', 'Areas'].forEach(function (k) { if ($(k)) $(k).addEventListener('change', render); });
                 $('Locate').addEventListener('click', function () {
                     if (!navigator.geolocation) return;
@@ -358,11 +407,27 @@
         setTimeout(function () { map.invalidateSize(); }, 200);
     }
 
+    // Silent refresh used by live.js: refetch, keep the user's filters, redraw.
+    window['gisReload_' + ID] = function () {
+        if (!started || !map) return Promise.resolve();
+        return fetch(DATA_URL, { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+            .then(function (rows) {
+                var fuel = $('Fuel').value, brgy = $('Brgy').value;
+                stations = rows;
+                $('Brgy').length = 1;
+                fillFilters();
+                if (fuel) $('Fuel').value = fuel;
+                $('Brgy').value = brgy;
+                render();
+            }).catch(function () {});
+    };
     window['gisInit_' + ID] = init;
     window['gisSetUserLocation_' + ID] = function (lat, lng) { if (!started) init(); if (map) setUser(lat, lng); else userLatLng = [lat, lng]; };
     window['gisFocusStation_' + ID] = function (sid) {
         var s = stations.find(function (x) { return x.id === sid; });
         if (!s || !map) return;
+        selectedId = s.id; updateTrip();
         map.setView([s.latitude, s.longitude], 16);
         if (markerById[sid]) markerById[sid].openPopup();
     };

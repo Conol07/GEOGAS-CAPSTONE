@@ -87,7 +87,7 @@
                 @else
                     <div class="d-flex flex-wrap gap-2">
                         @foreach($services as $s)
-                            <span class="badge" style="background:var(--gg-accent-light); color:var(--gg-dark); font-weight:600;">
+                            <span class="badge" style="background:var(--gg-accent-light); color:var(--gg-heading); font-weight:600;">
                                 <i class="bi bi-check-circle-fill me-1"></i>{{ $s->label }}
                             </span>
                         @endforeach

@@ -68,9 +68,9 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
 <div class="row g-3 mb-4">
     @if($lowestPriceEntry)
     <div class="col-md-6">
-        <div class="card h-100" style="border-color:#15803D;">
+        <div class="card h-100" style="border-color:var(--gg-green);">
             <div class="card-body">
-                <div class="small fw-bold" style="color:#15803D;">LOWEST-PRICE STATION</div>
+                <div class="small fw-bold" style="color:var(--gg-green);">LOWEST-PRICE STATION</div>
                 <h6 class="mb-0">{{ $lowestPriceEntry->station->station_name }}</h6>
                 <div class="text-muted-gg small">{{ $lowestPriceEntry->fuelType->name }} — ₱{{ number_format($lowestPriceEntry->price,2) }} &middot; {{ $lowestPriceEntry->station->barangay }}</div>
             </div>
@@ -79,9 +79,9 @@ $sidebarItems = \App\Support\Nav::lguSidebar();
     @endif
     @if($highestPriceEntry)
     <div class="col-md-6">
-        <div class="card h-100" style="border-color:#B91C1C;">
+        <div class="card h-100" style="border-color:var(--gg-red-status);">
             <div class="card-body">
-                <div class="small fw-bold" style="color:#B91C1C;">HIGHEST-PRICE STATION</div>
+                <div class="small fw-bold" style="color:var(--gg-red-status);">HIGHEST-PRICE STATION</div>
                 <h6 class="mb-0">{{ $highestPriceEntry->station->station_name }}</h6>
                 <div class="text-muted-gg small">{{ $highestPriceEntry->fuelType->name }} — ₱{{ number_format($highestPriceEntry->price,2) }} &middot; {{ $highestPriceEntry->station->barangay }}</div>
             </div>
